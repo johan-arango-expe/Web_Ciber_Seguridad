@@ -1,21 +1,21 @@
   :root {
-    --navy: #0a1628;
-    --navy-mid: #0f2044;
-    --navy-light: #1a3060;
-    --blue: #1e5cff;
-    --blue-soft: #2d6fff;
-    --cyan: #00d4ff;
-    --cyan-dim: rgba(0,212,255,0.12);
-    --green: #00e5a0;
+    --navy: #0d1b2e;
+    --navy-mid: #0f2236;
+    --navy-light: #162d45;
+    --blue: #0ea5a0;
+    --blue-soft: #12bdb7;
+    --cyan: #2de8b0;
+    --cyan-dim: rgba(45,232,176,0.12);
+    --green: #4ade80;
     --red: #ff4757;
     --amber: #ffb520;
-    --white: #f0f4ff;
-    --white-dim: rgba(240,244,255,0.6);
-    --white-muted: rgba(240,244,255,0.3);
-    --border: rgba(0,212,255,0.15);
-    --border-focus: rgba(0,212,255,0.5);
-    --surface: rgba(15,32,68,0.8);
-    --surface-hover: rgba(26,48,96,0.6);
+    --white: #f0f9ff;
+    --white-dim: rgba(240,249,255,0.65);
+    --white-muted: rgba(240,249,255,0.32);
+    --border: rgba(45,232,176,0.18);
+    --border-focus: rgba(45,232,176,0.5);
+    --surface: rgba(13,27,46,0.85);
+    --surface-hover: rgba(22,45,69,0.7);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -34,8 +34,8 @@
     position: fixed;
     inset: 0;
     background-image:
-      linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
+      linear-gradient(rgba(45,232,176,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(45,232,176,0.04) 1px, transparent 1px);
     background-size: 40px 40px;
     pointer-events: none;
     z-index: 0;
@@ -47,7 +47,7 @@
     top: -200px; left: 50%;
     transform: translateX(-50%);
     width: 800px; height: 400px;
-    background: radial-gradient(ellipse, rgba(30,92,255,0.2) 0%, transparent 70%);
+    background: radial-gradient(ellipse, rgba(14,165,160,0.25) 0%, transparent 70%);
     pointer-events: none; z-index: 0;
   }
 
@@ -169,7 +169,7 @@
 
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--blue), var(--cyan));
+    background: linear-gradient(90deg, #0ea5a0, #2de8b0);
     border-radius: 4px;
     transition: width 0.4s ease;
     width: 0%;
@@ -196,13 +196,13 @@
     gap: 16px;
     padding: 20px 28px;
     border-bottom: 1px solid var(--border);
-    background: rgba(30,92,255,0.06);
+    background: rgba(14,165,160,0.06);
   }
 
   .section-number {
     width: 36px; height: 36px;
     border-radius: 8px;
-    background: linear-gradient(135deg, var(--blue), var(--blue-soft));
+    background: linear-gradient(135deg, #0ea5a0, #2de8b0);
     display: flex; align-items: center; justify-content: center;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 13px;
@@ -256,7 +256,7 @@
     font-family: 'IBM Plex Mono', monospace;
     background: var(--cyan-dim);
     color: var(--cyan);
-    border: 1px solid rgba(0,212,255,0.2);
+    border: 1px solid rgba(45,232,176,0.2);
     border-radius: 4px;
     padding: 1px 6px;
     margin-left: 8px;
@@ -284,7 +284,7 @@
   input[type="email"]:focus,
   textarea:focus {
     border-color: var(--border-focus);
-    background: rgba(0,212,255,0.05);
+    background: rgba(45,232,176,0.05);
   }
 
   input[type="text"]::placeholder,
@@ -325,7 +325,7 @@
 
   .option-item:hover {
     background: var(--surface-hover);
-    border-color: rgba(0,212,255,0.3);
+    border-color: rgba(45,232,176,0.3);
   }
 
   .option-item input[type="radio"],
@@ -342,8 +342,8 @@
   }
 
   .option-item:has(input:checked) {
-    background: rgba(0,212,255,0.07);
-    border-color: rgba(0,212,255,0.4);
+    background: rgba(45,232,176,0.07);
+    border-color: rgba(45,232,176,0.4);
   }
 
   .option-item:has(input:checked) span {
@@ -435,8 +435,8 @@
   .mini-option:hover { background: var(--surface-hover); }
   .mini-option input { width: 13px; height: 13px; accent-color: var(--cyan); }
   .mini-option:has(input:checked) {
-    background: rgba(0,212,255,0.08);
-    border-color: rgba(0,212,255,0.4);
+    background: rgba(45,232,176,0.08);
+    border-color: rgba(45,232,176,0.4);
     color: var(--white);
   }
 
@@ -449,8 +449,8 @@
 
   /* Declaration */
   .declaration-box {
-    background: rgba(0,229,160,0.06);
-    border: 1px solid rgba(0,229,160,0.2);
+    background: rgba(45,232,176,0.06);
+    border: 1px solid rgba(45,232,176,0.2);
     border-radius: 10px;
     padding: 18px 20px;
     display: flex;
@@ -505,13 +505,13 @@
   .btn-ghost:hover {
     background: var(--surface-hover);
     color: var(--white);
-    border-color: rgba(0,212,255,0.3);
+    border-color: rgba(45,232,176,0.3);
   }
 
   .btn-primary {
-    background: linear-gradient(135deg, var(--blue), var(--blue-soft));
+    background: linear-gradient(135deg, #0ea5a0, #2de8b0);
     color: white;
-    box-shadow: 0 4px 16px rgba(30,92,255,0.3);
+    box-shadow: 0 4px 16px rgba(14,165,160,0.3);
   }
 
   .btn-primary:hover {
@@ -558,7 +558,7 @@
 
   .step-dot.active {
     background: var(--cyan);
-    box-shadow: 0 0 8px rgba(0,212,255,0.4);
+    box-shadow: 0 0 8px rgba(45,232,176,0.4);
     width: 20px;
     border-radius: 4px;
   }
@@ -569,7 +569,7 @@
     text-align: center;
     padding: 60px 40px;
     background: var(--surface);
-    border: 1px solid rgba(0,229,160,0.2);
+    border: 1px solid rgba(45,232,176,0.2);
     border-radius: 16px;
     animation: fadeUp 0.5s ease both;
   }
@@ -578,8 +578,8 @@
 
   .success-icon {
     width: 72px; height: 72px;
-    background: rgba(0,229,160,0.1);
-    border: 2px solid rgba(0,229,160,0.3);
+    background: rgba(45,232,176,0.1);
+    border: 2px solid rgba(45,232,176,0.3);
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     margin: 0 auto 24px;
@@ -604,7 +604,7 @@
   .ref-code {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 13px;
-    background: rgba(0,212,255,0.08);
+    background: rgba(45,232,176,0.08);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 10px 20px;

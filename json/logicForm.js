@@ -62,7 +62,7 @@ function buildClientRow(prefix, safe, rowIdx, isClient) {
 
   if (isClient) {
     return `
-      <div class="client-row" id="row_${uid}" style="background:rgba(255,255,255,0.02);border:1px solid rgba(0,212,255,0.1);border-radius:8px;padding:12px;margin-bottom:10px;">
+      <div class="client-row" id="row_${uid}" style="background:rgba(255,255,255,0.02);border:1px solid rgba(45,232,176,0.1);border-radius:8px;padding:12px;margin-bottom:10px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
           <span style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--cyan);letter-spacing:0.06em;">${rowLabel}</span>
           ${deleteBtn}
@@ -98,10 +98,10 @@ function buildClientRow(prefix, safe, rowIdx, isClient) {
   } else {
     // Corp: cliente siempre es Experimentality (fijo, no se muestra)
     return `
-      <div class="client-row" id="row_${uid}" style="background:rgba(255,255,255,0.02);border:1px solid rgba(0,212,255,0.1);border-radius:8px;padding:12px;margin-bottom:10px;">
+      <div class="client-row" id="row_${uid}" style="background:rgba(255,255,255,0.02);border:1px solid rgba(45,232,176,0.1);border-radius:8px;padding:12px;margin-bottom:10px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
           <span style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--cyan);letter-spacing:0.06em;">${rowLabel}</span>
-          <span style="font-size:10px;font-family:'IBM Plex Mono',monospace;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);color:var(--cyan);border-radius:4px;padding:2px 8px;">
+          <span style="font-size:10px;font-family:'IBM Plex Mono',monospace;background:rgba(45,232,176,0.1);border:1px solid rgba(45,232,176,0.2);color:var(--cyan);border-radius:4px;padding:2px 8px;">
             Cliente: Experimentality
           </span>
         </div>
@@ -216,15 +216,15 @@ function renderAppCard(prefix, app, isClient, isCustom = false) {
 
   const displayName = isCustom
     ? `<input type="text" id="customname_${key}" placeholder="Nombre del aplicativo" required
-         style="background:transparent;border:none;border-bottom:1px solid rgba(0,212,255,0.4);color:var(--cyan);font-size:13px;font-weight:600;font-family:'IBM Plex Sans',sans-serif;outline:none;width:180px;padding:2px 4px;">`
+         style="background:transparent;border:none;border-bottom:1px solid rgba(45,232,176,0.4);color:var(--cyan);font-size:13px;font-weight:600;font-family:'IBM Plex Sans',sans-serif;outline:none;width:180px;padding:2px 4px;">`
     : app;
 
   const addClientBtnHtml = isClient ? `
     <button type="button"
       onclick="addClientRow('${prefix}','${safe}',${isClient})"
-      style="margin-top:8px;width:100%;background:rgba(0,212,255,0.07);border:1px dashed rgba(0,212,255,0.3);color:var(--cyan);border-radius:7px;padding:8px;font-size:12px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:background 0.15s;"
-      onmouseover="this.style.background='rgba(0,212,255,0.14)'"
-      onmouseout="this.style.background='rgba(0,212,255,0.07)'">
+      style="margin-top:8px;width:100%;background:rgba(45,232,176,0.07);border:1px dashed rgba(45,232,176,0.3);color:var(--cyan);border-radius:7px;padding:8px;font-size:12px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:background 0.15s;"
+      onmouseover="this.style.background='rgba(45,232,176,0.14)'"
+      onmouseout="this.style.background='rgba(45,232,176,0.07)'">
       + Agregar otro cliente
     </button>` : '';
 
@@ -246,9 +246,9 @@ function renderAddOtroButton(container, prefix, isClient) {
   btn.innerHTML = `
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     Agregar otro aplicativo`;
-  btn.style.cssText = 'margin-top:12px;width:100%;background:rgba(0,229,160,0.06);border:1px dashed rgba(0,229,160,0.3);color:#00e5a0;border-radius:7px;padding:10px;font-size:13px;cursor:pointer;font-family:\'IBM Plex Sans\',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.15s;';
-  btn.onmouseover = () => btn.style.background = 'rgba(0,229,160,0.12)';
-  btn.onmouseout = () => btn.style.background = 'rgba(0,229,160,0.06)';
+  btn.style.cssText = 'margin-top:12px;width:100%;background:rgba(45,232,176,0.12);border:1px dashed rgba(45,232,176,0.3);color:var(--cyan);border-radius:7px;padding:10px;font-size:13px;cursor:pointer;font-family:\'IBM Plex Sans\',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.15s;';
+  btn.onmouseover = () => btn.style.background = 'rgba(45,232,176,0.12)';
+  btn.onmouseout = () => btn.style.background = 'rgba(45,232,176,0.12)';
   btn.onclick = () => addCustomApp(prefix, isClient);
   // Remove existing before appending
   const existing = document.getElementById(`addOtroBtn_${prefix}`);
