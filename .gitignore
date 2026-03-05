@@ -1,7 +1,3 @@
-# ── Variables de entorno ─────────────────────────────────
-# Contiene credenciales reales — NUNCA subir al repositorio
-js/env.js
-
 # ── Sistema operativo ─────────────────────────────────────
 .DS_Store
 Thumbs.db
