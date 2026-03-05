@@ -6,368 +6,367 @@
   <title>Sondeo de Validación de Accesos – Auditoría de Seguridad</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/index.css">
-  <script src="js/logicForm.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-
-<!-- ===== LOGIN SCREEN ===== -->
-<div id="loginScreen" style="position:fixed;inset:0;background:var(--navy);z-index:1000;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:24px;">
-  <div style="position:relative;z-index:1;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:48px 40px;max-width:420px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
-    <div style="margin-bottom: 24px;">
-      <img src="https://experimentalityes.vtexassets.com/assets/vtex.file-manager-graphql/images/7d7cb0e0-c390-432b-9b37-f00839262b5c___89a2f9ff4738f9a736d2319142ceeda9.png" alt="Experimentality Logo" style="width: 140px; height: auto;">
-    </div>
-    <h2 style="font-size:20px;font-weight:700;color:#f0f4ff;margin-bottom:8px;font-family:'IBM Plex Sans',sans-serif;">Acceso Restringido</h2>
-    <p style="font-size:13px;color:rgba(240,244,255,0.6);line-height:1.6;margin-bottom:20px;font-family:'IBM Plex Sans',sans-serif;">Este formulario es exclusivo para empleados de Experimentality. Inicia sesión con tu cuenta corporativa para continuar.</p>
-    <div style="display:inline-flex;align-items:center;gap:6px;background:var(--cyan-dim);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--cyan);margin-bottom:28px;">
-      <span style="width:6px;height:6px;background:var(--cyan);border-radius:50%;display:inline-block;"></span>
-      Solo cuentas @experimentality.co
-    </div>
-    <br>
-    <button id="googleSignInBtn" onclick="initGoogleSignIn()" style="display:inline-flex;align-items:center;justify-content:center;gap:12px;width:100%;background:white;color:#1f1f1f;border:none;border-radius:10px;padding:13px 20px;font-size:14px;font-weight:500;font-family:'IBM Plex Sans',sans-serif;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.3);transition:all 0.2s;">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google">
-      Iniciar sesión con Google
-    </button>
-    <div id="loginError" style="display:none;margin-top:16px;background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);border-radius:8px;padding:10px 14px;font-size:12px;color:#ff6b78;font-family:'IBM Plex Mono',monospace;line-height:1.5;"></div>
-    <p style="margin-top:24px;font-size:11px;color:var(--white-muted);font-family:'IBM Plex Mono',monospace;line-height:1.6;">Al iniciar sesión aceptas que tu identidad<br>quedará registrada en esta auditoría.</p>
-  </div>
-</div>
-
-<div class="glow-top"></div>
-<div class="container">
-  <!-- User badge -->
-  <div id="userBadge" style="display:none;align-items:center;gap:10px;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);border-radius:100px;padding:6px 14px 6px 6px;margin:0 auto 20px;width:fit-content;">
-    <img id="userAvatar" src="" width="28" height="28" style="border-radius:50%;border:1px solid rgba(0,212,255,0.3);" alt="">
-    <span id="userName" style="font-size:12px;color:rgba(240,244,255,0.7);font-family:'IBM Plex Mono',monospace;"></span>
-    <button onclick="signOut()" style="font-size:11px;color:rgba(255,71,87,0.7);cursor:pointer;background:none;border:none;font-family:'IBM Plex Mono',monospace;padding:0;margin-left:4px;">Cerrar sesión</button>
-  </div>
-
-  <!-- Header -->
-  <div class="header">
-    <img src="https://experimentalityes.vtexassets.com/assets/vtex.file-manager-graphql/images/7d7cb0e0-c390-432b-9b37-f00839262b5c___89a2f9ff4738f9a736d2319142ceeda9.png" alt="Experimentality" style="width: 120px; height: auto; margin-bottom: 20px;">
-    <div class="header-badge">
-      <span>Auditoría de Seguridad · Confidencial</span>
-    </div>
-    <h1>Sondeo de Validación de Accesos<br>a <span>Aplicativos</span></h1>
-    <p class="header-desc">
-      Este formulario tiene como objetivo validar y auditar los accesos que poseen los empleados
-      a aplicativos administrados por la empresa y por los clientes,
-      incluyendo validación de seguridad (MFA / 2FA).
-    </p>
-    <div class="header-meta">
-      <span class="meta-chip">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Datos confidenciales
-      </span>
-      <span class="meta-chip">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        ~10 min estimados
-      </span>
-      <span class="meta-chip">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-        Una respuesta por usuario
-      </span>
+  <!-- ===== LOGIN SCREEN ===== -->
+  <div id="loginScreen" style="position:fixed;inset:0;background:var(--navy);z-index:1000;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:24px;">
+    <div style="position:relative;z-index:1;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:48px 40px;max-width:420px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
+      <div style="margin-bottom: 24px;">
+        <img src="https://experimentalityes.vtexassets.com/assets/vtex.file-manager-graphql/images/7d7cb0e0-c390-432b-9b37-f00839262b5c___89a2f9ff4738f9a736d2319142ceeda9.png" alt="Experimentality Logo" style="width: 140px; height: auto;">
+      </div>
+      <h2 style="font-size:20px;font-weight:700;color:#f0f4ff;margin-bottom:8px;font-family:'IBM Plex Sans',sans-serif;">Acceso Restringido</h2>
+      <p style="font-size:13px;color:rgba(240,244,255,0.6);line-height:1.6;margin-bottom:20px;font-family:'IBM Plex Sans',sans-serif;">Este formulario es exclusivo para empleados de Experimentality. Inicia sesión con tu cuenta corporativa para continuar.</p>
+      <div style="display:inline-flex;align-items:center;gap:6px;background:var(--cyan-dim);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--cyan);margin-bottom:28px;">
+        <span style="width:6px;height:6px;background:var(--cyan);border-radius:50%;display:inline-block;"></span>
+        Solo cuentas @experimentality.co
+      </div>
+      <br>
+      <button id="googleSignInBtn" onclick="initGoogleSignIn()" style="display:inline-flex;align-items:center;justify-content:center;gap:12px;width:100%;background:white;color:#1f1f1f;border:none;border-radius:10px;padding:13px 20px;font-size:14px;font-weight:500;font-family:'IBM Plex Sans',sans-serif;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.3);transition:all 0.2s;">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google">
+        Iniciar sesión con Google
+      </button>
+      <div id="loginError" style="display:none;margin-top:16px;background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);border-radius:8px;padding:10px 14px;font-size:12px;color:#ff6b78;font-family:'IBM Plex Mono',monospace;line-height:1.5;"></div>
+      <p style="margin-top:24px;font-size:11px;color:var(--white-muted);font-family:'IBM Plex Mono',monospace;line-height:1.6;">Al iniciar sesión aceptas que tu identidad<br>quedará registrada en esta auditoría.</p>
     </div>
   </div>
 
-  <!-- Progress -->
-  <div class="progress-bar-wrap">
-    <div class="progress-info">
-      <span class="progress-label" id="progressLabel">SECCIÓN 1 DE 5</span>
-      <span class="progress-pct" id="progressPct">0%</span>
+  <div class="glow-top"></div>
+  <div class="container">
+    <!-- User badge -->
+    <div id="userBadge" style="display:none;align-items:center;gap:10px;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);border-radius:100px;padding:6px 14px 6px 6px;margin:0 auto 20px;width:fit-content;">
+      <img id="userAvatar" src="" width="28" height="28" style="border-radius:50%;border:1px solid rgba(0,212,255,0.3);" alt="">
+      <span id="userName" style="font-size:12px;color:rgba(240,244,255,0.7);font-family:'IBM Plex Mono',monospace;"></span>
+      <button onclick="signOut()" style="font-size:11px;color:rgba(255,71,87,0.7);cursor:pointer;background:none;border:none;font-family:'IBM Plex Mono',monospace;padding:0;margin-left:4px;">Cerrar sesión</button>
     </div>
-    <div class="progress-track">
-      <div class="progress-fill" id="progressFill"></div>
-    </div>
-  </div>
 
-  <!-- ======================== SECCIÓN 1 ======================== -->
-  <div class="section-card active" id="section1">
-    <div class="section-header">
-      <div class="section-number">01</div>
-      <div class="section-title-wrap">
-        <h2>Información del Empleado</h2>
-        <p>Datos de identificación y ubicación organizacional</p>
+    <!-- Header -->
+    <div class="header">
+      <img src="https://experimentalityes.vtexassets.com/assets/vtex.file-manager-graphql/images/7d7cb0e0-c390-432b-9b37-f00839262b5c___89a2f9ff4738f9a736d2319142ceeda9.png" alt="Experimentality" style="width: 120px; height: auto; margin-bottom: 20px;">
+      <div class="header-badge">
+        <span>Auditoría de Seguridad · Confidencial</span>
+      </div>
+      <h1>Sondeo de Validación de Accesos<br>a <span>Aplicativos</span></h1>
+      <p class="header-desc">
+        Este formulario tiene como objetivo validar y auditar los accesos que poseen los empleados
+        a aplicativos administrados por la empresa y por los clientes,
+        incluyendo validación de seguridad (MFA / 2FA).
+      </p>
+      <div class="header-meta">
+        <span class="meta-chip">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Datos confidenciales
+        </span>
+        <span class="meta-chip">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ~10 min estimados
+        </span>
+        <span class="meta-chip">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          Una respuesta por usuario
+        </span>
       </div>
     </div>
-    <div class="section-body">
-      <div class="two-col">
-        <div class="field">
-          <label class="field-label" for="nombreCompleto">Nombre completo <span class="required">*</span></label>
-          <input type="text" id="nombreCompleto" placeholder="Ej. María García López" required>
-          <div class="field-error" id="err-nombreCompleto">Este campo es obligatorio</div>
-        </div>
-        <div class="field">
-          <label class="field-label" for="documento">Documento de identidad <span class="required">*</span></label>
-          <input type="text" id="documento" placeholder="Ej. 1234567890" required>
-          <div class="field-error" id="err-documento">Este campo es obligatorio</div>
-        </div>
+
+    <!-- Progress -->
+    <div class="progress-bar-wrap">
+      <div class="progress-info">
+        <span class="progress-label" id="progressLabel">SECCIÓN 1 DE 5</span>
+        <span class="progress-pct" id="progressPct">0%</span>
       </div>
-      <div class="field">
-        <label class="field-label" for="correo">Correo corporativo <span class="required">*</span></label>
-        <input type="email" id="correo" placeholder="nombre@empresa.com" required>
-        <div class="field-error" id="err-correo">Ingresa un correo válido</div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
       </div>
-      <div class="two-col">
-        <div class="field">
-          <label class="field-label" for="cargo">Cargo <span class="required">*</span></label>
-          <input type="text" id="cargo" placeholder="Ej. Desarrollador Senior" required>
-          <div class="field-error" id="err-cargo">Este campo es obligatorio</div>
-        </div>
-        <div class="field">
-          <label class="field-label" for="area">Área <span class="required">*</span></label>
-          <input type="text" id="area" placeholder="Ej. Tecnología" required>
-          <div class="field-error" id="err-area">Este campo es obligatorio</div>
+    </div>
+
+    <!-- ======================== SECCIÓN 1 ======================== -->
+    <div class="section-card active" id="section1">
+      <div class="section-header">
+        <div class="section-number">01</div>
+        <div class="section-title-wrap">
+          <h2>Información del Empleado</h2>
+          <p>Datos de identificación y ubicación organizacional</p>
         </div>
       </div>
-      <div class="field">
-        <label class="field-label" for="lider">Líder inmediato <span class="required">*</span></label>
-        <input type="text" id="lider" placeholder="Nombre completo del líder" required>
-        <div class="field-error" id="err-lider">Este campo es obligatorio</div>
+      <div class="section-body">
+        <div class="two-col">
+          <div class="field">
+            <label class="field-label" for="nombreCompleto">Nombre completo <span class="required">*</span></label>
+            <input type="text" id="nombreCompleto" placeholder="Ej. María García López" required>
+            <div class="field-error" id="err-nombreCompleto">Este campo es obligatorio</div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="documento">Documento de identidad <span class="required">*</span></label>
+            <input type="text" id="documento" placeholder="Ej. 1234567890" required>
+            <div class="field-error" id="err-documento">Este campo es obligatorio</div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="correo">Correo corporativo <span class="required">*</span></label>
+          <input type="email" id="correo" placeholder="nombre@empresa.com" required>
+          <div class="field-error" id="err-correo">Ingresa un correo válido</div>
+        </div>
+        <div class="two-col">
+          <div class="field">
+            <label class="field-label" for="cargo">Cargo <span class="required">*</span></label>
+            <input type="text" id="cargo" placeholder="Ej. Desarrollador Senior" required>
+            <div class="field-error" id="err-cargo">Este campo es obligatorio</div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="area">Área <span class="required">*</span></label>
+            <input type="text" id="area" placeholder="Ej. Tecnología" required>
+            <div class="field-error" id="err-area">Este campo es obligatorio</div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="lider">Líder inmediato <span class="required">*</span></label>
+          <input type="text" id="lider" placeholder="Nombre completo del líder" required>
+          <div class="field-error" id="err-lider">Este campo es obligatorio</div>
+        </div>
+        <div class="field">
+          <label class="field-label">¿Actualmente se encuentra asignado a proyectos? <span class="required">*</span></label>
+          <div class="option-group inline">
+            <label class="option-item">
+              <input type="radio" name="asignadoProyectos" value="Si" required>
+              <span>Sí</span>
+            </label>
+            <label class="option-item">
+              <input type="radio" name="asignadoProyectos" value="No" required>
+              <span>No</span>
+            </label>
+          </div>
+          <div class="field-error" id="err-asignadoProyectos">Selecciona una opción</div>
+        </div>
       </div>
-      <div class="field">
-        <label class="field-label">¿Actualmente se encuentra asignado a proyectos? <span class="required">*</span></label>
-        <div class="option-group inline">
-          <label class="option-item">
-            <input type="radio" name="asignadoProyectos" value="Si" required>
-            <span>Sí</span>
+      <div class="nav-buttons" style="padding: 0 28px 28px;">
+        <div class="step-dots" id="dots1"></div>
+        <button class="btn btn-primary" onclick="goNext(1)">
+          Continuar
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ======================== SECCIÓN 2 ======================== -->
+    <div class="section-card" id="section2">
+      <div class="section-header">
+        <div class="section-number">02</div>
+        <div class="section-title-wrap">
+          <h2>Accesos a Aplicativos Corporativos</h2>
+          <p>Aplicativos administrados por la empresa</p>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field">
+          <label class="field-label">¿A cuáles aplicativos corporativos tiene acceso actualmente? <span class="required">*</span>
+            <span class="badge">Selección múltiple</span>
           </label>
-          <label class="option-item">
-            <input type="radio" name="asignadoProyectos" value="No" required>
-            <span>No</span>
+          <div class="option-group">
+            <label class="option-item"><input type="checkbox" name="appCorp" value="VTEX"><span>VTEX</span></label>
+            <label class="option-item"><input type="checkbox" name="appCorp" value="AWS"><span>AWS (Amazon Web Services)</span></label>
+            <label class="option-item"><input type="checkbox" name="appCorp" value="Azure"><span>Microsoft Azure</span></label>
+            <label class="option-item"><input type="checkbox" name="appCorp" value="Microsoft Teams"><span>Microsoft Teams</span></label>
+            <label class="option-item"><input type="checkbox" name="appCorp" value="Google Workspace"><span>Google Workspace</span></label>
+            <label class="option-item"><input type="checkbox" name="appCorp" value="Figma"><span>Figma</span></label>
+            <label class="option-item"><input type="checkbox" name="appCorp" value="Adobe Experience Cloud"><span>Adobe Experience Cloud (Adobe DX)</span></label>
+          </div>
+          <div class="field-error" id="err-appCorp">Selecciona al menos un aplicativo</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="info-note">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Para cada aplicativo seleccionado, completa la información de acceso a continuación. Si tienes acceso a un aplicativo que no está en la lista, usa el botón <strong style="color:var(--cyan)">+ Agregar otro aplicativo</strong>.
+        </div>
+
+        <div class="app-detail-block" id="corpAppDetails">
+          <!-- Generated by JS -->
+        </div>
+      </div>
+      <div class="nav-buttons" style="padding: 0 28px 28px;">
+        <button class="btn btn-ghost" onclick="goPrev(2)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Anterior
+        </button>
+        <div class="step-dots" id="dots2"></div>
+        <button class="btn btn-primary" onclick="goNext(2)">
+          Continuar
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ======================== SECCIÓN 3 ======================== -->
+    <div class="section-card" id="section3">
+      <div class="section-header">
+        <div class="section-number">03</div>
+        <div class="section-title-wrap">
+          <h2>Accesos a Aplicativos del Cliente</h2>
+          <p>Aplicativos administrados por los clientes</p>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field">
+          <label class="field-label">¿A cuáles aplicativos del cliente tiene acceso? <span class="required">*</span>
+            <span class="badge">Selección múltiple</span>
           </label>
+          <div class="option-group">
+            <label class="option-item"><input type="checkbox" name="appClient" value="VPN del cliente"><span>VPN del cliente</span></label>
+            <label class="option-item"><input type="checkbox" name="appClient" value="VTEX"><span>VTEX</span></label>
+            <label class="option-item"><input type="checkbox" name="appClient" value="AWS"><span>AWS (Amazon Web Services)</span></label>
+            <label class="option-item"><input type="checkbox" name="appClient" value="Azure"><span>Microsoft Azure</span></label>
+            <label class="option-item"><input type="checkbox" name="appClient" value="Microsoft Teams"><span>Microsoft Teams</span></label>
+            <label class="option-item"><input type="checkbox" name="appClient" value="Google Workspace"><span>Google Workspace</span></label>
+            <label class="option-item"><input type="checkbox" name="appClient" value="Microsoft 365"><span>Microsoft 365</span></label>
+          </div>
+          <div class="field-error" id="err-appClient">Selecciona al menos un aplicativo</div>
         </div>
-        <div class="field-error" id="err-asignadoProyectos">Selecciona una opción</div>
+
+        <div class="divider"></div>
+
+        <div class="info-note">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Para cada aplicativo del cliente seleccionado, completa la información a continuación. Si tienes acceso a un aplicativo que no está en la lista, usa el botón <strong style="color:var(--cyan)">+ Agregar otro aplicativo</strong>.
+        </div>
+
+        <div class="app-detail-block" id="clientAppDetails">
+          <!-- Generated by JS -->
+        </div>
+      </div>
+      <div class="nav-buttons" style="padding: 0 28px 28px;">
+        <button class="btn btn-ghost" onclick="goPrev(3)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Anterior
+        </button>
+        <div class="step-dots" id="dots3"></div>
+        <button class="btn btn-primary" onclick="goNext(3)">
+          Continuar
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
       </div>
     </div>
-    <div class="nav-buttons" style="padding: 0 28px 28px;">
-      <div class="step-dots" id="dots1"></div>
-      <button class="btn btn-primary" onclick="goNext(1)">
-        Continuar
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+
+    <!-- ======================== SECCIÓN 4 ======================== -->
+    <div class="section-card" id="section4">
+      <div class="section-header">
+        <div class="section-number">04</div>
+        <div class="section-title-wrap">
+          <h2>Seguridad y Buenas Prácticas</h2>
+          <p>Evaluación de hábitos de seguridad</p>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field">
+          <label class="field-label">¿Utiliza la misma contraseña en más de un sistema? <span class="required">*</span></label>
+          <div class="option-group inline">
+            <label class="option-item"><input type="radio" name="mismaContrasena" value="Si" required><span>Sí</span></label>
+            <label class="option-item"><input type="radio" name="mismaContrasena" value="No" required><span>No</span></label>
+          </div>
+          <div class="field-error" id="err-mismaContrasena">Selecciona una opción</div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">¿Ha compartido credenciales con otra persona? <span class="required">*</span></label>
+          <div class="option-group inline">
+            <label class="option-item"><input type="radio" name="compartidoCredenciales" value="Si" required><span>Sí</span></label>
+            <label class="option-item"><input type="radio" name="compartidoCredenciales" value="No" required><span>No</span></label>
+          </div>
+          <div class="field-error" id="err-compartidoCredenciales">Selecciona una opción</div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">¿Considera que tiene accesos que ya no debería tener? <span class="required">*</span></label>
+          <div class="option-group inline">
+            <label class="option-item"><input type="radio" name="accesosSobrantes" value="Si" onchange="toggleSobrantes(true)" required><span>Sí</span></label>
+            <label class="option-item"><input type="radio" name="accesosSobrantes" value="No" onchange="toggleSobrantes(false)" required><span>No</span></label>
+          </div>
+          <div class="field-error" id="err-accesosSobrantes">Selecciona una opción</div>
+        </div>
+
+        <div class="field" id="sobrantes-field" style="display:none;">
+          <label class="field-label" for="cualesAccesos">Si respondió Sí, ¿cuáles accesos? <span class="required">*</span></label>
+          <textarea id="cualesAccesos" placeholder="Describe los accesos que ya no deberías tener (aplicativo, cliente, rol...)" required></textarea>
+        </div>
+
+        <div class="field">
+          <label class="field-label">¿Tiene aplicativos corporativos instalados en dispositivos personales? <span class="required">*</span></label>
+          <div class="option-group inline">
+            <label class="option-item"><input type="radio" name="appsPersonales" value="Si" required><span>Sí</span></label>
+            <label class="option-item"><input type="radio" name="appsPersonales" value="No" required><span>No</span></label>
+          </div>
+          <div class="field-error" id="err-appsPersonales">Selecciona una opción</div>
+        </div>
+      </div>
+      <div class="nav-buttons" style="padding: 0 28px 28px;">
+        <button class="btn btn-ghost" onclick="goPrev(4)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Anterior
+        </button>
+        <div class="step-dots" id="dots4"></div>
+        <button class="btn btn-primary" onclick="goNext(4)">
+          Continuar
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ======================== SECCIÓN 5 ======================== -->
+    <div class="section-card" id="section5">
+      <div class="section-header">
+        <div class="section-number">05</div>
+        <div class="section-title-wrap">
+          <h2>Confirmación y Firma</h2>
+          <p>Declaración de veracidad</p>
+        </div>
+      </div>
+      <div class="section-body">
+
+        <div class="field">
+          <label class="field-label">Resumen de tu respuesta</label>
+          <div id="summaryBox" style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:12px;color:var(--white-dim);font-family:'IBM Plex Mono',monospace;line-height:1.8;"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="field">
+          <label class="field-label">Declaración obligatoria <span class="required">*</span></label>
+          <div class="declaration-box">
+            <input type="checkbox" id="declaracion" onchange="checkDeclaration()">
+            <p class="declaration-text">
+              "Confirmo que la información suministrada es veraz y corresponde a los accesos que actualmente poseo. Entiendo que esta declaración hace parte de un proceso de auditoría de seguridad interna."
+            </p>
+          </div>
+          <div class="field-error" id="err-declaracion">Debes aceptar la declaración para continuar</div>
+        </div>
+
+      </div>
+      <div class="nav-buttons" style="padding: 0 28px 28px;">
+        <button class="btn btn-ghost" onclick="goPrev(5)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Anterior
+        </button>
+        <div class="step-dots" id="dots5"></div>
+        <button class="btn btn-success" id="submitBtn" onclick="submitForm()" disabled>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Enviar formulario
+        </button>
+      </div>
+    </div>
+
+    <!-- Success screen -->
+    <div class="success-screen" id="successScreen">
+      <div class="success-icon">✓</div>
+      <h2>¡Formulario enviado!</h2>
+      <p>Tu sondeo de auditoría de seguridad ha sido registrado correctamente. El equipo de seguridad procesará tu información en los próximos días hábiles.</p>
+      <div class="ref-code" id="refCode">REF: ...</div>
+      <button class="btn btn-ghost" onclick="downloadResponses()" style="margin:0 auto;display:inline-flex;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Descargar mis respuestas (JSON)
       </button>
     </div>
+
   </div>
-
-  <!-- ======================== SECCIÓN 2 ======================== -->
-  <div class="section-card" id="section2">
-    <div class="section-header">
-      <div class="section-number">02</div>
-      <div class="section-title-wrap">
-        <h2>Accesos a Aplicativos Corporativos</h2>
-        <p>Aplicativos administrados por la empresa</p>
-      </div>
-    </div>
-    <div class="section-body">
-      <div class="field">
-        <label class="field-label">¿A cuáles aplicativos corporativos tiene acceso actualmente? <span class="required">*</span>
-          <span class="badge">Selección múltiple</span>
-        </label>
-        <div class="option-group">
-          <label class="option-item"><input type="checkbox" name="appCorp" value="VTEX"><span>VTEX</span></label>
-          <label class="option-item"><input type="checkbox" name="appCorp" value="AWS"><span>AWS (Amazon Web Services)</span></label>
-          <label class="option-item"><input type="checkbox" name="appCorp" value="Azure"><span>Microsoft Azure</span></label>
-          <label class="option-item"><input type="checkbox" name="appCorp" value="Microsoft Teams"><span>Microsoft Teams</span></label>
-          <label class="option-item"><input type="checkbox" name="appCorp" value="Google Workspace"><span>Google Workspace</span></label>
-          <label class="option-item"><input type="checkbox" name="appCorp" value="Figma"><span>Figma</span></label>
-          <label class="option-item"><input type="checkbox" name="appCorp" value="Adobe Experience Cloud"><span>Adobe Experience Cloud (Adobe DX)</span></label>
-        </div>
-        <div class="field-error" id="err-appCorp">Selecciona al menos un aplicativo</div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="info-note">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Para cada aplicativo seleccionado, completa la información de acceso a continuación. Si tienes acceso a un aplicativo que no está en la lista, usa el botón <strong style="color:var(--cyan)">+ Agregar otro aplicativo</strong>.
-      </div>
-
-      <div class="app-detail-block" id="corpAppDetails">
-        <!-- Generated by JS -->
-      </div>
-    </div>
-    <div class="nav-buttons" style="padding: 0 28px 28px;">
-      <button class="btn btn-ghost" onclick="goPrev(2)">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        Anterior
-      </button>
-      <div class="step-dots" id="dots2"></div>
-      <button class="btn btn-primary" onclick="goNext(2)">
-        Continuar
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-    </div>
-  </div>
-
-  <!-- ======================== SECCIÓN 3 ======================== -->
-  <div class="section-card" id="section3">
-    <div class="section-header">
-      <div class="section-number">03</div>
-      <div class="section-title-wrap">
-        <h2>Accesos a Aplicativos del Cliente</h2>
-        <p>Aplicativos administrados por los clientes</p>
-      </div>
-    </div>
-    <div class="section-body">
-      <div class="field">
-        <label class="field-label">¿A cuáles aplicativos del cliente tiene acceso? <span class="required">*</span>
-          <span class="badge">Selección múltiple</span>
-        </label>
-        <div class="option-group">
-          <label class="option-item"><input type="checkbox" name="appClient" value="VPN del cliente"><span>VPN del cliente</span></label>
-          <label class="option-item"><input type="checkbox" name="appClient" value="VTEX"><span>VTEX</span></label>
-          <label class="option-item"><input type="checkbox" name="appClient" value="AWS"><span>AWS (Amazon Web Services)</span></label>
-          <label class="option-item"><input type="checkbox" name="appClient" value="Azure"><span>Microsoft Azure</span></label>
-          <label class="option-item"><input type="checkbox" name="appClient" value="Microsoft Teams"><span>Microsoft Teams</span></label>
-          <label class="option-item"><input type="checkbox" name="appClient" value="Google Workspace"><span>Google Workspace</span></label>
-          <label class="option-item"><input type="checkbox" name="appClient" value="Microsoft 365"><span>Microsoft 365</span></label>
-        </div>
-        <div class="field-error" id="err-appClient">Selecciona al menos un aplicativo</div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="info-note">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Para cada aplicativo del cliente seleccionado, completa la información a continuación. Si tienes acceso a un aplicativo que no está en la lista, usa el botón <strong style="color:var(--cyan)">+ Agregar otro aplicativo</strong>.
-      </div>
-
-      <div class="app-detail-block" id="clientAppDetails">
-        <!-- Generated by JS -->
-      </div>
-    </div>
-    <div class="nav-buttons" style="padding: 0 28px 28px;">
-      <button class="btn btn-ghost" onclick="goPrev(3)">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        Anterior
-      </button>
-      <div class="step-dots" id="dots3"></div>
-      <button class="btn btn-primary" onclick="goNext(3)">
-        Continuar
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-    </div>
-  </div>
-
-  <!-- ======================== SECCIÓN 4 ======================== -->
-  <div class="section-card" id="section4">
-    <div class="section-header">
-      <div class="section-number">04</div>
-      <div class="section-title-wrap">
-        <h2>Seguridad y Buenas Prácticas</h2>
-        <p>Evaluación de hábitos de seguridad</p>
-      </div>
-    </div>
-    <div class="section-body">
-      <div class="field">
-        <label class="field-label">¿Utiliza la misma contraseña en más de un sistema? <span class="required">*</span></label>
-        <div class="option-group inline">
-          <label class="option-item"><input type="radio" name="mismaContrasena" value="Si" required><span>Sí</span></label>
-          <label class="option-item"><input type="radio" name="mismaContrasena" value="No" required><span>No</span></label>
-        </div>
-        <div class="field-error" id="err-mismaContrasena">Selecciona una opción</div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">¿Ha compartido credenciales con otra persona? <span class="required">*</span></label>
-        <div class="option-group inline">
-          <label class="option-item"><input type="radio" name="compartidoCredenciales" value="Si" required><span>Sí</span></label>
-          <label class="option-item"><input type="radio" name="compartidoCredenciales" value="No" required><span>No</span></label>
-        </div>
-        <div class="field-error" id="err-compartidoCredenciales">Selecciona una opción</div>
-      </div>
-
-      <div class="field">
-        <label class="field-label">¿Considera que tiene accesos que ya no debería tener? <span class="required">*</span></label>
-        <div class="option-group inline">
-          <label class="option-item"><input type="radio" name="accesosSobrantes" value="Si" onchange="toggleSobrantes(true)" required><span>Sí</span></label>
-          <label class="option-item"><input type="radio" name="accesosSobrantes" value="No" onchange="toggleSobrantes(false)" required><span>No</span></label>
-        </div>
-        <div class="field-error" id="err-accesosSobrantes">Selecciona una opción</div>
-      </div>
-
-      <div class="field" id="sobrantes-field" style="display:none;">
-        <label class="field-label" for="cualesAccesos">Si respondió Sí, ¿cuáles accesos? <span class="required">*</span></label>
-        <textarea id="cualesAccesos" placeholder="Describe los accesos que ya no deberías tener (aplicativo, cliente, rol...)" required></textarea>
-      </div>
-
-      <div class="field">
-        <label class="field-label">¿Tiene aplicativos corporativos instalados en dispositivos personales? <span class="required">*</span></label>
-        <div class="option-group inline">
-          <label class="option-item"><input type="radio" name="appsPersonales" value="Si" required><span>Sí</span></label>
-          <label class="option-item"><input type="radio" name="appsPersonales" value="No" required><span>No</span></label>
-        </div>
-        <div class="field-error" id="err-appsPersonales">Selecciona una opción</div>
-      </div>
-    </div>
-    <div class="nav-buttons" style="padding: 0 28px 28px;">
-      <button class="btn btn-ghost" onclick="goPrev(4)">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        Anterior
-      </button>
-      <div class="step-dots" id="dots4"></div>
-      <button class="btn btn-primary" onclick="goNext(4)">
-        Continuar
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-    </div>
-  </div>
-
-  <!-- ======================== SECCIÓN 5 ======================== -->
-  <div class="section-card" id="section5">
-    <div class="section-header">
-      <div class="section-number">05</div>
-      <div class="section-title-wrap">
-        <h2>Confirmación y Firma</h2>
-        <p>Declaración de veracidad</p>
-      </div>
-    </div>
-    <div class="section-body">
-
-      <div class="field">
-        <label class="field-label">Resumen de tu respuesta</label>
-        <div id="summaryBox" style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:12px;color:var(--white-dim);font-family:'IBM Plex Mono',monospace;line-height:1.8;"></div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="field">
-        <label class="field-label">Declaración obligatoria <span class="required">*</span></label>
-        <div class="declaration-box">
-          <input type="checkbox" id="declaracion" onchange="checkDeclaration()">
-          <p class="declaration-text">
-            "Confirmo que la información suministrada es veraz y corresponde a los accesos que actualmente poseo. Entiendo que esta declaración hace parte de un proceso de auditoría de seguridad interna."
-          </p>
-        </div>
-        <div class="field-error" id="err-declaracion">Debes aceptar la declaración para continuar</div>
-      </div>
-
-    </div>
-    <div class="nav-buttons" style="padding: 0 28px 28px;">
-      <button class="btn btn-ghost" onclick="goPrev(5)">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        Anterior
-      </button>
-      <div class="step-dots" id="dots5"></div>
-      <button class="btn btn-success" id="submitBtn" onclick="submitForm()" disabled>
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        Enviar formulario
-      </button>
-    </div>
-  </div>
-
-  <!-- Success screen -->
-  <div class="success-screen" id="successScreen">
-    <div class="success-icon">✓</div>
-    <h2>¡Formulario enviado!</h2>
-    <p>Tu sondeo de auditoría de seguridad ha sido registrado correctamente. El equipo de seguridad procesará tu información en los próximos días hábiles.</p>
-    <div class="ref-code" id="refCode">REF: ...</div>
-    <button class="btn btn-ghost" onclick="downloadResponses()" style="margin:0 auto;display:inline-flex;">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Descargar mis respuestas (JSON)
-    </button>
-  </div>
-
-</div>
 </body>
+<script src="js/logicForm.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </html>
