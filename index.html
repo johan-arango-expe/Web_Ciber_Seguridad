@@ -690,11 +690,38 @@
     .btn { width: 100%; justify-content: center; }
   }
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-<div class="glow-top"></div>
 
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="loginScreen" style="position:fixed;inset:0;background:#0a1628;z-index:1000;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:24px;">
+  <div style="position:relative;z-index:1;background:rgba(15,32,68,0.98);border:1px solid rgba(0,212,255,0.2);border-radius:20px;padding:48px 40px;max-width:420px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
+    <div style="width:64px;height:64px;background:linear-gradient(135deg,rgba(30,92,255,0.2),rgba(0,212,255,0.2));border:1px solid rgba(0,212,255,0.3);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:28px;">🔐</div>
+    <h2 style="font-size:20px;font-weight:700;color:#f0f4ff;margin-bottom:8px;font-family:'IBM Plex Sans',sans-serif;">Acceso Restringido</h2>
+    <p style="font-size:13px;color:rgba(240,244,255,0.6);line-height:1.6;margin-bottom:20px;font-family:'IBM Plex Sans',sans-serif;">Este formulario es exclusivo para empleados de Experimentality. Inicia sesión con tu cuenta corporativa para continuar.</p>
+    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);border-radius:100px;padding:5px 14px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#00d4ff;margin-bottom:28px;">
+      <span style="width:6px;height:6px;background:#00d4ff;border-radius:50%;display:inline-block;"></span>
+      Solo cuentas @experimentality.co
+    </div>
+    <br>
+    <button id="googleSignInBtn" onclick="initGoogleSignIn()" style="display:inline-flex;align-items:center;justify-content:center;gap:12px;width:100%;background:white;color:#1f1f1f;border:none;border-radius:10px;padding:13px 20px;font-size:14px;font-weight:500;font-family:'IBM Plex Sans',sans-serif;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.3);transition:all 0.2s;">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google">
+      Iniciar sesión con Google
+    </button>
+    <div id="loginError" style="display:none;margin-top:16px;background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);border-radius:8px;padding:10px 14px;font-size:12px;color:#ff6b78;font-family:'IBM Plex Mono',monospace;line-height:1.5;"></div>
+    <p style="margin-top:24px;font-size:11px;color:rgba(240,244,255,0.3);font-family:'IBM Plex Mono',monospace;line-height:1.6;">Al iniciar sesión aceptas que tu identidad<br>quedará registrada en esta auditoría.</p>
+  </div>
+</div>
+
+<div class="glow-top"></div>
 <div class="container">
+  <!-- User badge -->
+  <div id="userBadge" style="display:none;align-items:center;gap:10px;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);border-radius:100px;padding:6px 14px 6px 6px;margin:0 auto 20px;width:fit-content;">
+    <img id="userAvatar" src="" width="28" height="28" style="border-radius:50%;border:1px solid rgba(0,212,255,0.3);" alt="">
+    <span id="userName" style="font-size:12px;color:rgba(240,244,255,0.7);font-family:'IBM Plex Mono',monospace;"></span>
+    <button onclick="signOut()" style="font-size:11px;color:rgba(255,71,87,0.7);cursor:pointer;background:none;border:none;font-family:'IBM Plex Mono',monospace;padding:0;margin-left:4px;">Cerrar sesión</button>
+  </div>
 
   <!-- Header -->
   <div class="header">
@@ -1550,6 +1577,109 @@ renderDots();
 updateProgress(1);
 bindCheckboxGroup('appCorp', 'corpAppDetails', false);
 bindCheckboxGroup('appClient', 'clientAppDetails', true);
+
+// ======================================================
+// GOOGLE OAUTH
+// ======================================================
+const GOOGLE_CLIENT_ID = '632152445690-3rjq91957nq89q0cel79cof5b4hlm17a.apps.googleusercontent.com';
+const ALLOWED_DOMAIN   = 'experimentality.co';
+let   googleUser       = null;
+
+function initGoogleSignIn() {
+  const btn = document.getElementById('googleSignInBtn');
+  btn.style.opacity = '0.7';
+  btn.style.pointerEvents = 'none';
+  btn.textContent = 'Conectando con Google...';
+
+  // Use the new Google Identity Services One Tap / popup flow
+  if (typeof google === 'undefined') {
+    showLoginError('No se pudo cargar Google Sign-In. Verifica tu conexión a internet.');
+    resetSignInBtn(); return;
+  }
+
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'email profile',
+    callback: (tokenResponse) => {
+      if (tokenResponse.error) {
+        showLoginError('Error al autenticar: ' + tokenResponse.error);
+        resetSignInBtn(); return;
+      }
+      // Fetch user info with the token
+      fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: 'Bearer ' + tokenResponse.access_token }
+      })
+      .then(r => r.json())
+      .then(profile => handleGoogleProfile(profile))
+      .catch(() => { showLoginError('No se pudo obtener el perfil. Intenta de nuevo.'); resetSignInBtn(); });
+    }
+  });
+  client.requestAccessToken({ prompt: 'select_account' });
+}
+
+function handleGoogleProfile(profile) {
+  const email = (profile.email || '').toLowerCase();
+  const domain = email.split('@')[1] || '';
+
+  if (domain !== ALLOWED_DOMAIN) {
+    showLoginError(
+      `❌ Acceso denegado.\n\nSolo cuentas @${ALLOWED_DOMAIN} pueden acceder.\nCorreo detectado: ${email}`
+    );
+    resetSignInBtn(); return;
+  }
+
+  // ✅ Authorized — store user and pre-fill email field
+  googleUser = profile;
+
+  // Pre-fill correo field and make it read-only
+  const correoInput = document.getElementById('correo');
+  if (correoInput) {
+    correoInput.value = email;
+    correoInput.readOnly = true;
+    correoInput.style.opacity = '0.7';
+    correoInput.style.cursor  = 'not-allowed';
+  }
+
+  // Show user badge
+  const badge  = document.getElementById('userBadge');
+  const avatar = document.getElementById('userAvatar');
+  const name   = document.getElementById('userName');
+  if (badge)  { badge.style.display = 'flex'; }
+  if (avatar && profile.picture) avatar.src = profile.picture;
+  if (name)   name.textContent = profile.name + ' · ' + email;
+
+  // Hide login screen with fade
+  const loginScreen = document.getElementById('loginScreen');
+  loginScreen.style.transition = 'opacity 0.4s ease';
+  loginScreen.style.opacity = '0';
+  setTimeout(() => { loginScreen.style.display = 'none'; }, 400);
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.whiteSpace = 'pre-line';
+}
+
+function resetSignInBtn() {
+  const btn = document.getElementById('googleSignInBtn');
+  btn.style.opacity = '1';
+  btn.style.pointerEvents = 'auto';
+  btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google"> Iniciar sesión con Google';
+}
+
+function signOut() {
+  googleUser = null;
+  document.getElementById('userBadge').style.display = 'none';
+  document.getElementById('loginScreen').style.opacity = '1';
+  document.getElementById('loginScreen').style.display = 'flex';
+  resetSignInBtn();
+  document.getElementById('loginError').style.display = 'none';
+  // Clear pre-filled email
+  const correoInput = document.getElementById('correo');
+  if (correoInput) { correoInput.value = ''; correoInput.readOnly = false; correoInput.style.opacity = '1'; correoInput.style.cursor = 'text'; }
+}
 </script>
 </body>
 </html>
