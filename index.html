@@ -6,10 +6,18 @@
   <title>Sondeo de Validación de Accesos – Auditoría de Seguridad</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/index.css">
-  <!-- Google GSI debe cargarse ANTES que logicForm.js para que 'google' esté disponible -->
+  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" defer></script>
-  <!-- logicForm.js con defer: se ejecuta después de que el DOM esté listo -->
-  <script src="js/logicForm.js" defer></script>
+  <!-- Variables de entorno (gitignored) → debe existir env.js -->
+  <script src="js/env.js"        defer></script>
+  <!-- Módulos de la aplicación (orden importa) -->
+  <script src="js/config.js"     defer></script>
+  <script src="js/ui.js"         defer></script>
+  <script src="js/auth.js"       defer></script>
+  <script src="js/validation.js" defer></script>
+  <script src="js/apps.js"       defer></script>
+  <script src="js/submit.js"     defer></script>
+  <script src="js/main.js"       defer></script>
 </head>
 <body>
 
