@@ -1,6 +1,59 @@
 const TOTAL_SECTIONS = 5;
 let currentSection = 1;
 let formData = {};
+let lideresList = []; // ← lista cargada desde Google Sheets
+
+const GOOGLE_CLIENT_ID = '632152445690-3rjq91957nq89q0cel79cof5b4hlm17a.apps.googleusercontent.com';
+const ALLOWED_DOMAIN   = 'experimentality.co';
+const APPS_SCRIPT_URL  = 'https://script.google.com/a/macros/experimentality.co/s/AKfycbwz-TOXqvbel3p3hfali44nnOxfF1_kJic5vYwp_24y0RLCx_pKvsbTH3HyvRWT7Bor/exec';
+
+// ======================================================
+// CARGA DE LÍDERES desde Google Sheets al iniciar
+// ======================================================
+async function cargarLideres() {
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + '?action=getLideres');
+    const data = await res.json();
+    if (data.lideres && Array.isArray(data.lideres)) {
+      lideresList = data.lideres.filter(l => l.trim() !== '');
+    }
+  } catch (e) {
+    console.warn('No se pudo cargar lista de líderes:', e.message);
+    lideresList = [];
+  }
+  // Una vez cargados, llenar el select del campo líder
+  poblarSelectLider('lider');
+}
+
+function selectStyle() {
+  return 'width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:\'IBM Plex Sans\',sans-serif;font-size:14px;color:var(--white);outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' fill=\'none\' stroke=\'%232de8b0\' stroke-width=\'2\' viewBox=\'0 0 24 24\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;';
+}
+
+function miniSelectStyle() {
+  return 'width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;padding:8px 32px 8px 10px;font-size:12px;color:var(--white);outline:none;cursor:pointer;font-family:\'IBM Plex Sans\',sans-serif;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' fill=\'none\' stroke=\'%232de8b0\' stroke-width=\'2\' viewBox=\'0 0 24 24\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;';
+}
+
+function buildLideresOptions(selectedValue = '') {
+  const placeholder = `<option value="" disabled ${!selectedValue ? 'selected' : ''}>Selecciona un líder...</option>`;
+  const opts = lideresList.map(l =>
+    `<option value="${l}" ${l === selectedValue ? 'selected' : ''}>${l}</option>`
+  ).join('');
+  return placeholder + opts;
+}
+
+function poblarSelectLider(selectId, selectedValue = '') {
+  const el = document.getElementById(selectId);
+  if (!el || el.tagName !== 'SELECT') return;
+  el.innerHTML = buildLideresOptions(selectedValue);
+}
+
+// Repobla todos los selects de líder en cards de apps cliente
+function repoblarLideresEnCards() {
+  document.querySelectorAll('select[id$="_lider"]').forEach(sel => {
+    const current = sel.value;
+    sel.innerHTML = buildLideresOptions(current);
+  });
+}
 
 // ---- Init dots for all sections ----
 function renderDots() {
@@ -33,8 +86,6 @@ function showSection(n) {
 }
 
 // ---- Multi-client app detail system ----
-// Storage: appClientRows[prefix_appSafe] = [ {rowIndex, fields...} ]
-
 function bindCheckboxGroup(name, detailContainerId, isClient) {
   const checkboxes = document.querySelectorAll(`input[name="${name}"]`);
   checkboxes.forEach(cb => {
@@ -56,11 +107,11 @@ function buildClientRow(prefix, safe, rowIdx, isClient) {
          ✕ Eliminar
        </button>` : '';
 
-  // For corp: single block (no multi-row), label is "ACCESO"
-  // For client: multi-row with "CLIENTE N" label
   const rowLabel = isClient ? (rowIdx === 0 ? 'CLIENTE 1' : `CLIENTE ${rowIdx + 1}`) : 'ACCESO';
 
   if (isClient) {
+    // Construir opciones del select de líder
+    const liderOpts = buildLideresOptions();
     return `
       <div class="client-row" id="row_${uid}" style="background:rgba(255,255,255,0.02);border:1px solid rgba(45,232,176,0.1);border-radius:8px;padding:12px;margin-bottom:10px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -69,34 +120,39 @@ function buildClientRow(prefix, safe, rowIdx, isClient) {
         </div>
         <div class="mini-field">
           <div class="mini-label">NOMBRE DEL CLIENTE *</div>
-          <input type="text" style="${inputStyle()}" placeholder="Nombre del cliente" id="${uid}_nombre" required>
+          <input type="text" style="${inputStyle()}" placeholder="Nombre del cliente" id="${uid}_nombre">
         </div>
         <div class="mini-field">
           <div class="mini-label">PROYECTO *</div>
-          <input type="text" style="${inputStyle()}" placeholder="Proyecto" id="${uid}_proyecto" required>
+          <input type="text" style="${inputStyle()}" placeholder="Proyecto" id="${uid}_proyecto">
         </div>
         <div class="mini-field">
           <div class="mini-label">ROL / TIPO DE ACCESO</div>
-          <input type="text" style="${inputStyle()}" placeholder="Ej. Admin, Read-only" id="${uid}_rol" required>
+          <input type="text" style="${inputStyle()}" placeholder="Ej. Admin, Read-only" id="${uid}_rol">
+        </div>
+        <div class="mini-field">
+          <div class="mini-label">LÍDER RESPONSABLE *</div>
+          <select id="${uid}_lider" style="${miniSelectStyle()}">
+            ${liderOpts}
+          </select>
         </div>
         <div class="mini-field">
           <div class="mini-label">TIPO DE CUENTA</div>
           <div class="mini-option-group">
-            <label class="mini-option"><input type="radio" name="${uid}_cuenta" value="Individual" required> Individual</label>
-            <label class="mini-option"><input type="radio" name="${uid}_cuenta" value="Compartida" required> Compartida</label>
+            <label class="mini-option"><input type="radio" name="${uid}_cuenta" value="Individual"> Individual</label>
+            <label class="mini-option"><input type="radio" name="${uid}_cuenta" value="Compartida"> Compartida</label>
           </div>
         </div>
         <div class="mini-field">
           <div class="mini-label">¿MFA / 2FA HABILITADO?</div>
           <div class="mini-option-group">
-            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="Si" required> Sí</label>
-            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="No" required> No</label>
-            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="No sabe" required> No sé</label>
+            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="Si"> Sí</label>
+            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="No"> No</label>
+            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="No sabe"> No sé</label>
           </div>
         </div>
       </div>`;
   } else {
-    // Corp: cliente siempre es Experimentality (fijo, no se muestra)
     return `
       <div class="client-row" id="row_${uid}" style="background:rgba(255,255,255,0.02);border:1px solid rgba(45,232,176,0.1);border-radius:8px;padding:12px;margin-bottom:10px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
@@ -107,25 +163,25 @@ function buildClientRow(prefix, safe, rowIdx, isClient) {
         </div>
         <div class="mini-field">
           <div class="mini-label">PROYECTO ASOCIADO</div>
-          <input type="text" style="${inputStyle()}" placeholder="Nombre del proyecto" id="${uid}_proyecto" required>
+          <input type="text" style="${inputStyle()}" placeholder="Nombre del proyecto" id="${uid}_proyecto">
         </div>
         <div class="mini-field">
           <div class="mini-label">ROL / TIPO DE ACCESO</div>
-          <input type="text" style="${inputStyle()}" placeholder="Ej. Admin, Developer" id="${uid}_rol" required>
+          <input type="text" style="${inputStyle()}" placeholder="Ej. Admin, Developer" id="${uid}_rol">
         </div>
         <div class="mini-field">
           <div class="mini-label">¿MFA / 2FA HABILITADO?</div>
           <div class="mini-option-group">
-            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="Si" required> Sí</label>
-            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="No" required> No</label>
-            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="No sabe" required> No sé</label>
+            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="Si"> Sí</label>
+            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="No"> No</label>
+            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="No sabe"> No sé</label>
           </div>
         </div>
       </div>`;
   }
 }
 
-// Track row counts per app: { "corp_VTEX": 1, "client_AWS": 2, ... }
+// Track row counts per app
 const rowCounts = {};
 
 function addClientRow(prefix, safe, isClient) {
@@ -137,7 +193,6 @@ function addClientRow(prefix, safe, isClient) {
   const div = document.createElement('div');
   div.innerHTML = buildClientRow(prefix, safe, count, isClient);
   rowsContainer.appendChild(div.firstElementChild);
-  // Re-label all rows
   relabelRows(key);
 }
 
@@ -156,7 +211,6 @@ function relabelRows(key) {
   rows.forEach((row, idx) => {
     const label = row.querySelector('span');
     if (label) label.textContent = idx === 0 ? 'CLIENTE 1' : `CLIENTE ${idx + 1}`;
-    // Show/hide delete button
     const btn = row.querySelector('button');
     if (btn) btn.style.display = idx === 0 ? 'none' : 'inline-block';
   });
@@ -166,7 +220,6 @@ function buildAppDetailCards(name, containerId, isClient) {
   const prefix = isClient ? 'client' : 'corp';
   const container = document.getElementById(containerId);
 
-  // Get checked values, but exclude "Otro" — those are handled as custom apps
   let checked = [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(c => c.value)
     .filter(v => v !== 'Otro');
 
@@ -177,14 +230,9 @@ function buildAppDetailCards(name, containerId, isClient) {
   }
 
   let html = `<div class="app-detail-title">DETALLE POR APLICATIVO</div>`;
-
-  checked.forEach(app => {
-    html += renderAppCard(prefix, app, isClient);
-  });
-
+  checked.forEach(app => { html += renderAppCard(prefix, app, isClient); });
   container.innerHTML = html;
 
-  // Re-render custom cards (preserves added custom apps across checkbox changes)
   const customKeys = Object.keys(rowCounts).filter(k => k.startsWith(`${prefix}_custom`));
   customKeys.forEach(key => {
     const safe = key.replace(`${prefix}_`, '');
@@ -209,13 +257,13 @@ function renderAppCard(prefix, app, isClient, isCustom = false) {
   }
 
   const deleteCardBtn = isCustom
-    ? `<button type="button" onclick="removeCustomApp('${prefix}','${safe}','${isCustom ? 'appCorp' : 'appClient'}')"
+    ? `<button type="button" onclick="removeCustomApp('${prefix}','${safe}')"
          style="background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.25);color:#ff4757;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;">
          ✕ Quitar app
        </button>` : '';
 
   const displayName = isCustom
-    ? `<input type="text" id="customname_${key}" placeholder="Nombre del aplicativo" required
+    ? `<input type="text" id="customname_${key}" placeholder="Nombre del aplicativo"
          style="background:transparent;border:none;border-bottom:1px solid rgba(45,232,176,0.4);color:var(--cyan);font-size:13px;font-weight:600;font-family:'IBM Plex Sans',sans-serif;outline:none;width:180px;padding:2px 4px;">`
     : app;
 
@@ -247,10 +295,7 @@ function renderAddOtroButton(container, prefix, isClient) {
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     Agregar otro aplicativo`;
   btn.style.cssText = 'margin-top:12px;width:100%;background:rgba(45,232,176,0.12);border:1px dashed rgba(45,232,176,0.3);color:var(--cyan);border-radius:7px;padding:10px;font-size:13px;cursor:pointer;font-family:\'IBM Plex Sans\',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.15s;';
-  btn.onmouseover = () => btn.style.background = 'rgba(45,232,176,0.12)';
-  btn.onmouseout = () => btn.style.background = 'rgba(45,232,176,0.12)';
   btn.onclick = () => addCustomApp(prefix, isClient);
-  // Remove existing before appending
   const existing = document.getElementById(`addOtroBtn_${prefix}`);
   if (existing) existing.remove();
   container.appendChild(btn);
@@ -263,13 +308,12 @@ function addCustomApp(prefix, isClient) {
   const key = `${prefix}_${safe}`;
   rowCounts[key] = 1;
   const container = document.getElementById(prefix === 'corp' ? 'corpAppDetails' : 'clientAppDetails');
-  // Insert before the add button
   const addBtn = document.getElementById(`addOtroBtn_${prefix}`);
   const html = renderAppCard(prefix, safe, isClient, true);
   addBtn.insertAdjacentHTML('beforebegin', html);
 }
 
-function removeCustomApp(prefix, safe, checkboxName) {
+function removeCustomApp(prefix, safe) {
   const key = `${prefix}_${safe}`;
   const card = document.getElementById(`appcard_${key}`);
   if (card) card.remove();
@@ -298,6 +342,19 @@ function validateSection(n) {
       valid = false;
     } else {
       if (el) el.classList.remove('invalid');
+      if (err) err.classList.remove('show');
+    }
+  };
+
+  const requireSelect = (id) => {
+    const el = document.getElementById(id);
+    const err = document.getElementById('err-' + id);
+    if (!el || !el.value) {
+      if (el) el.style.borderColor = 'rgba(255,71,87,0.5)';
+      if (err) err.classList.add('show');
+      valid = false;
+    } else {
+      if (el) el.style.borderColor = '';
       if (err) err.classList.remove('show');
     }
   };
@@ -336,69 +393,25 @@ function validateSection(n) {
     requireEmail('correo');
     requireText('cargo');
     requireText('area');
-    requireText('lider');
+    requireSelect('lider');
     requireRadio('asignadoProyectos');
   }
-  if (n === 2) {
-    requireCheckbox('appCorp');
-    // Also validate dynamic fields
-    const corpDetails = document.getElementById('corpAppDetails');
-    if (corpDetails) {
-      corpDetails.querySelectorAll('input[type="text"]').forEach(inp => {
-        if (!inp.value.trim()) { inp.classList.add('invalid'); valid = false; }
-        else { inp.classList.remove('invalid'); }
-      });
-      // Check radios in groups
-      const radios = corpDetails.querySelectorAll('input[type="radio"]');
-      const names = [...new Set([...radios].map(r => r.name))];
-      names.forEach(name => {
-        const checked = corpDetails.querySelector(`input[name="${name}"]:checked`);
-        const options = corpDetails.querySelectorAll(`input[name="${name}"]`).forEach(r => {
-          const lbl = r.closest('.mini-option');
-          if (!checked) { if (lbl) lbl.style.borderColor = 'rgba(255,71,87,0.5)'; valid = false; }
-          else { if (lbl) lbl.style.borderColor = ''; }
-        });
-      });
-    }
-  }
-  if (n === 3) {
-    requireCheckbox('appClient');
-    // Also validate dynamic fields
-    const clientDetails = document.getElementById('clientAppDetails');
-    if (clientDetails) {
-      clientDetails.querySelectorAll('input[type="text"]').forEach(inp => {
-        if (!inp.value.trim()) { inp.classList.add('invalid'); valid = false; }
-        else { inp.classList.remove('invalid'); }
-      });
-      // Check radios in groups
-      const radios = clientDetails.querySelectorAll('input[type="radio"]');
-      const names = [...new Set([...radios].map(r => r.name))];
-      names.forEach(name => {
-        const checked = clientDetails.querySelector(`input[name="${name}"]:checked`);
-        clientDetails.querySelectorAll(`input[name="${name}"]`).forEach(r => {
-          const lbl = r.closest('.mini-option');
-          if (!checked) { if (lbl) lbl.style.borderColor = 'rgba(255,71,87,0.5)'; valid = false; }
-          else { if (lbl) lbl.style.borderColor = ''; }
-        });
-      });
-    }
-  }
+  if (n === 2) requireCheckbox('appCorp');
+  if (n === 3) requireCheckbox('appClient');
   if (n === 4) {
     requireRadio('mismaContrasena');
     requireRadio('compartidoCredenciales');
     requireRadio('accesosSobrantes');
     requireRadio('appsPersonales');
     const accesosSobrantes = document.querySelector('input[name="accesosSobrantes"]:checked');
-    if (accesosSobrantes && accesosSobrantes.value === 'Si') {
-      requireText('cualesAccesos');
-    }
+    if (accesosSobrantes && accesosSobrantes.value === 'Si') requireText('cualesAccesos');
   }
 
   return valid;
 }
 
 function goNext(n) {
-  if (!validateSection(n)) { return; }
+  if (!validateSection(n)) return;
   if (n < TOTAL_SECTIONS) showSection(n + 1);
 }
 
@@ -409,7 +422,7 @@ function goPrev(n) {
 // ---- Summary ----
 function buildSummary() {
   const box = document.getElementById('summaryBox');
-  const g = (id) => { const el = document.getElementById(id); return el ? el.value || '—' : '—'; };
+  const g = (id) => { const el = document.getElementById(id); return el ? (el.value || '—') : '—'; };
   const r = (name) => { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : '—'; };
   const cbs = (name) => [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(c => c.value).join(', ') || '—';
 
@@ -429,17 +442,11 @@ function buildSummary() {
   `;
 }
 
-// ---- Submit ----
-const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/experimentality.co/s/AKfycbwz-TOXqvbel3p3hfali44nnOxfF1_kJic5vYwp_24y0RLCx_pKvsbTH3HyvRWT7Bor/exec';
-
+// ---- Gather app details ----
 function gatherAppDetails(name, isClient) {
   const prefix = isClient ? 'client' : 'corp';
-
-  // Standard checked apps (excluding "Otro" checkbox)
   const checked = [...document.querySelectorAll(`input[name="${name}"]:checked`)]
     .map(c => c.value).filter(v => v !== 'Otro');
-
-  // Custom apps added via "+ Agregar otro aplicativo"
   const customKeys = Object.keys(rowCounts).filter(k => k.startsWith(`${prefix}_custom_app_`));
   const customApps = customKeys.map(key => {
     const safe = key.replace(`${prefix}_`, '');
@@ -464,6 +471,7 @@ function gatherAppDetails(name, isClient) {
           nombreCliente: gv('nombre'),
           proyecto: gv('proyecto'),
           rol: gv('rol'),
+          liderResponsable: gv('lider'),   // ← nuevo campo
           tipoCuenta: rv('cuenta'),
           mfa: rv('mfa')
         });
@@ -481,10 +489,10 @@ function gatherAppDetails(name, isClient) {
 
   checked.forEach(app => collectRows(app.replace(/\s+/g, '_'), app));
   customApps.forEach(({ safe, displayName }) => collectRows(safe, displayName));
-
   return results;
 }
 
+// ---- Submit ----
 async function submitForm() {
   const decl = document.getElementById('declaracion');
   if (!decl.checked) {
@@ -499,7 +507,6 @@ async function submitForm() {
   const g = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
   const r = (name) => { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; };
   const cbs = (name) => [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(c => c.value);
-
   const ref = 'AUD-' + Date.now().toString(36).toUpperCase();
 
   formData = {
@@ -535,7 +542,6 @@ async function submitForm() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
     });
-    // no-cors doesn't return readable response, assume success if no exception
     showSuccess(ref);
   } catch (err) {
     submitBtn.disabled = false;
@@ -566,12 +572,11 @@ renderDots();
 updateProgress(1);
 bindCheckboxGroup('appCorp', 'corpAppDetails', false);
 bindCheckboxGroup('appClient', 'clientAppDetails', true);
+cargarLideres(); // ← carga lista desde Sheets al iniciar
 
 // ======================================================
 // GOOGLE OAUTH
 // ======================================================
-const GOOGLE_CLIENT_ID = '632152445690-3rjq91957nq89q0cel79cof5b4hlm17a.apps.googleusercontent.com';
-const ALLOWED_DOMAIN = 'experimentality.co';
 let googleUser = null;
 
 function initGoogleSignIn() {
@@ -580,7 +585,6 @@ function initGoogleSignIn() {
   btn.style.pointerEvents = 'none';
   btn.textContent = 'Conectando con Google...';
 
-  // Use the new Google Identity Services One Tap / popup flow
   if (typeof google === 'undefined') {
     showLoginError('No se pudo cargar Google Sign-In. Verifica tu conexión a internet.');
     resetSignInBtn(); return;
@@ -594,7 +598,6 @@ function initGoogleSignIn() {
         showLoginError('Error al autenticar: ' + tokenResponse.error);
         resetSignInBtn(); return;
       }
-      // Fetch user info with the token
       fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: 'Bearer ' + tokenResponse.access_token }
       })
@@ -611,16 +614,12 @@ function handleGoogleProfile(profile) {
   const domain = email.split('@')[1] || '';
 
   if (domain !== ALLOWED_DOMAIN) {
-    showLoginError(
-      `❌ Acceso denegado.\n\nSolo cuentas @${ALLOWED_DOMAIN} pueden acceder.\nCorreo detectado: ${email}`
-    );
+    showLoginError(`❌ Acceso denegado.\n\nSolo cuentas @${ALLOWED_DOMAIN} pueden acceder.\nCorreo detectado: ${email}`);
     resetSignInBtn(); return;
   }
 
-  // ✅ Authorized — store user and pre-fill email field
   googleUser = profile;
 
-  // Pre-fill correo field and make it read-only
   const correoInput = document.getElementById('correo');
   if (correoInput) {
     correoInput.value = email;
@@ -629,15 +628,13 @@ function handleGoogleProfile(profile) {
     correoInput.style.cursor = 'not-allowed';
   }
 
-  // Show user badge
-  const badge = document.getElementById('userBadge');
+  const badge  = document.getElementById('userBadge');
   const avatar = document.getElementById('userAvatar');
-  const name = document.getElementById('userName');
-  if (badge) { badge.style.display = 'flex'; }
+  const name   = document.getElementById('userName');
+  if (badge)  badge.style.display = 'flex';
   if (avatar && profile.picture) avatar.src = profile.picture;
-  if (name) name.textContent = profile.name + ' · ' + email;
+  if (name)   name.textContent = profile.name + ' · ' + email;
 
-  // Hide login screen with fade
   const loginScreen = document.getElementById('loginScreen');
   loginScreen.style.transition = 'opacity 0.4s ease';
   loginScreen.style.opacity = '0';
@@ -665,7 +662,11 @@ function signOut() {
   document.getElementById('loginScreen').style.display = 'flex';
   resetSignInBtn();
   document.getElementById('loginError').style.display = 'none';
-  // Clear pre-filled email
   const correoInput = document.getElementById('correo');
-  if (correoInput) { correoInput.value = ''; correoInput.readOnly = false; correoInput.style.opacity = '1'; correoInput.style.cursor = 'text'; }
+  if (correoInput) {
+    correoInput.value = '';
+    correoInput.readOnly = false;
+    correoInput.style.opacity = '1';
+    correoInput.style.cursor = 'text';
+  }
 }
