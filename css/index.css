@@ -681,3 +681,24 @@
     .nav-buttons { flex-direction: column; }
     .btn { width: 100%; justify-content: center; }
   }
+
+/* ── Select: legibilidad en todos los navegadores ───────── */
+select {
+  background-color: #0d1b2e !important;
+  color: #ffffff !important;
+}
+
+select option {
+  background-color: #0d1b2e;
+  color: #ffffff;
+}
+
+select option:disabled {
+  color: rgba(255,255,255,0.4);
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--teal) !important;
+  box-shadow: 0 0 0 2px rgba(14,165,160,0.2);
+}
