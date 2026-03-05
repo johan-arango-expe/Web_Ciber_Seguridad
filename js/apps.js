@@ -1,10 +1,13 @@
 const Apps = (() => {
+
   function bindCheckboxGroup(name, containerId, isClient) {
     document.querySelectorAll(`input[name="${name}"]`).forEach(cb => {
       cb.addEventListener('change', () => _buildCards(name, containerId, isClient));
     });
   }
+
   // ── Cards por aplicativo ─────────────────────────────────
+
   function _buildCards(name, containerId, isClient) {
     const prefix = isClient ? 'client' : 'corp';
     const container = document.getElementById(containerId);
@@ -20,6 +23,7 @@ const Apps = (() => {
 
     container.innerHTML = `<div class="app-detail-title">DETALLE POR APLICATIVO</div>`;
     checked.forEach(app => container.insertAdjacentHTML('beforeend', _cardHTML(prefix, app, isClient)));
+
     // Re-renderizar custom cards preservadas
     Object.keys(State.rowCounts)
       .filter(k => k.startsWith(`${prefix}_custom`))
@@ -73,7 +77,9 @@ const Apps = (() => {
         ${addClientBtn}
       </div>`;
   }
+
   // ── Filas por cliente dentro de cada app ────────────────
+
   function _rowHTML(prefix, safe, rowIdx, isClient) {
     const uid = `${prefix}_${safe}_r${rowIdx}`;
     const rowLabel = isClient ? `CLIENTE ${rowIdx + 1}` : 'ACCESO';
@@ -85,7 +91,7 @@ const Apps = (() => {
 
     const liderField = isClient ? `
       <div class="mini-field">
-        <div class="mini-label">LÍDER RESPONSABLE *</div>
+        <div class="mini-label">LÍDER RESPONSABLE <span style="color:#ff4757">*</span></div>
         <select id="${uid}_lider" style="${UI.selectStyle(true)}">
           ${UI.buildLideresOptions()}
         </select>
@@ -93,20 +99,20 @@ const Apps = (() => {
 
     const clientFields = isClient ? `
       <div class="mini-field">
-        <div class="mini-label">NOMBRE DEL CLIENTE *</div>
+        <div class="mini-label">NOMBRE DEL CLIENTE <span style="color:#ff4757">*</span></div>
         <input type="text" id="${uid}_nombre" placeholder="Nombre del cliente" style="${UI.inputStyle()}">
       </div>
       <div class="mini-field">
-        <div class="mini-label">PROYECTO *</div>
+        <div class="mini-label">PROYECTO <span style="color:#ff4757">*</span></div>
         <input type="text" id="${uid}_proyecto" placeholder="Proyecto" style="${UI.inputStyle()}">
       </div>
       <div class="mini-field">
-        <div class="mini-label">ROL / TIPO DE ACCESO</div>
+        <div class="mini-label">ROL / TIPO DE ACCESO <span style="color:#ff4757">*</span></div>
         <input type="text" id="${uid}_rol" placeholder="Ej. Admin, Read-only" style="${UI.inputStyle()}">
       </div>
       ${liderField}
       <div class="mini-field">
-        <div class="mini-label">TIPO DE CUENTA</div>
+        <div class="mini-label">TIPO DE CUENTA <span style="color:#ff4757">*</span></div>
         <div class="mini-option-group">
           <label class="mini-option"><input type="radio" name="${uid}_cuenta" value="Individual"> Individual</label>
           <label class="mini-option"><input type="radio" name="${uid}_cuenta" value="Compartida"> Compartida</label>
@@ -119,11 +125,11 @@ const Apps = (() => {
         </span>
       </div>
       <div class="mini-field">
-        <div class="mini-label">PROYECTO ASOCIADO</div>
+        <div class="mini-label">PROYECTO ASOCIADO <span style="color:#ff4757">*</span></div>
         <input type="text" id="${uid}_proyecto" placeholder="Nombre del proyecto" style="${UI.inputStyle()}">
       </div>
       <div class="mini-field">
-        <div class="mini-label">ROL / TIPO DE ACCESO</div>
+        <div class="mini-label">ROL / TIPO DE ACCESO <span style="color:#ff4757">*</span></div>
         <input type="text" id="${uid}_rol" placeholder="Ej. Admin, Developer" style="${UI.inputStyle()}">
       </div>`;
 
@@ -138,7 +144,7 @@ const Apps = (() => {
         </div>
         ${clientFields}
         <div class="mini-field">
-          <div class="mini-label">¿MFA / 2FA HABILITADO?</div>
+          <div class="mini-label">¿MFA / 2FA HABILITADO? <span style="color:#ff4757">*</span></div>
           <div class="mini-option-group">
             <label class="mini-option"><input type="radio" name="${uid}_mfa" value="Si"> Sí</label>
             <label class="mini-option"><input type="radio" name="${uid}_mfa" value="No"> No</label>
@@ -147,7 +153,9 @@ const Apps = (() => {
         </div>
       </div>`;
   }
+
   // ── Manipulación de filas ────────────────────────────────
+
   function addClientRow(prefix, safe, isClient) {
     const key = `${prefix}_${safe}`;
     const count = State.rowCounts[key] || 1;
@@ -174,7 +182,9 @@ const Apps = (() => {
       if (btn) btn.style.display = idx === 0 ? 'none' : 'inline-block';
     });
   }
+
   // ── Botón "Agregar otro aplicativo" ─────────────────────
+
   function _renderAddBtn(container, prefix, isClient) {
     const existing = document.getElementById(`addOtroBtn_${prefix}`);
     if (existing) existing.remove();
@@ -213,7 +223,9 @@ const Apps = (() => {
     if (card) card.remove();
     delete State.rowCounts[`${prefix}_${safe}`];
   }
+
   // ── Recolectar datos para envío ──────────────────────────
+
   function gatherDetails(name, isClient) {
     const prefix = isClient ? 'client' : 'corp';
 
