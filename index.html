@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sondeo de Validación de Accesos – Auditoría de Seguridad</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a1628;
+    --navy-mid: #0f2044;
+    --navy-light: #1a3060;
+    --blue: #1e5cff;
+    --blue-soft: #2d6fff;
+    --cyan: #00d4ff;
+    --cyan-dim: rgba(0,212,255,0.12);
+    --green: #00e5a0;
+    --red: #ff4757;
+    --amber: #ffb520;
+    --white: #f0f4ff;
+    --white-dim: rgba(240,244,255,0.6);
+    --white-muted: rgba(240,244,255,0.3);
+    --border: rgba(0,212,255,0.15);
+    --border-focus: rgba(0,212,255,0.5);
+    --surface: rgba(15,32,68,0.8);
+    --surface-hover: rgba(26,48,96,0.6);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--navy);
+    color: var(--white);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glows */
+  .glow-top {
+    position: fixed;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 800px; height: 400px;
+    background: radial-gradient(ellipse, rgba(30,92,255,0.2) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--cyan-dim);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--cyan);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .header-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--cyan);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  h1 {
+    font-size: clamp(22px, 4vw, 32px);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--white);
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+
+  h1 span {
+    color: var(--cyan);
+  }
+
+  .header-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--white-dim);
+    max-width: 600px;
+    margin: 0 auto 28px;
+  }
+
+  .header-meta {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .meta-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--white-muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .meta-chip svg {
+    opacity: 0.6;
+  }
+
+  /* Progress bar */
+  .progress-bar-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+    animation: fadeDown 0.6s 0.1s ease both;
+  }
+
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 12px;
+  }
+
+  .progress-label {
+    color: var(--white-dim);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .progress-pct {
+    color: var(--cyan);
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+  }
+
+  .progress-track {
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--cyan));
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* Section card */
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 24px;
+    overflow: hidden;
+    animation: fadeUp 0.5s ease both;
+    display: none;
+  }
+
+  .section-card.active {
+    display: block;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(30,92,255,0.06);
+  }
+
+  .section-number {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--blue), var(--blue-soft));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .section-title-wrap h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 2px;
+  }
+
+  .section-title-wrap p {
+    font-size: 12px;
+    color: var(--white-muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .section-body {
+    padding: 28px;
+  }
+
+  /* Field */
+  .field {
+    margin-bottom: 24px;
+  }
+
+  .field:last-child {
+    margin-bottom: 0;
+  }
+
+  label.field-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  label.field-label .required {
+    color: var(--red);
+    margin-left: 3px;
+  }
+
+  label.field-label .badge {
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    background: var(--cyan-dim);
+    color: var(--cyan);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-left: 8px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    vertical-align: middle;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    color: var(--white);
+    transition: border-color 0.2s, background 0.2s;
+    outline: none;
+  }
+
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  textarea:focus {
+    border-color: var(--border-focus);
+    background: rgba(0,212,255,0.05);
+  }
+
+  input[type="text"]::placeholder,
+  input[type="email"]::placeholder,
+  textarea::placeholder {
+    color: var(--white-muted);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 90px;
+  }
+
+  /* Radio & Checkbox groups */
+  .option-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option-group.inline {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .option-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    user-select: none;
+  }
+
+  .option-item:hover {
+    background: var(--surface-hover);
+    border-color: rgba(0,212,255,0.3);
+  }
+
+  .option-item input[type="radio"],
+  .option-item input[type="checkbox"] {
+    width: 16px; height: 16px;
+    accent-color: var(--cyan);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .option-item span {
+    font-size: 13px;
+    color: var(--white-dim);
+  }
+
+  .option-item:has(input:checked) {
+    background: rgba(0,212,255,0.07);
+    border-color: rgba(0,212,255,0.4);
+  }
+
+  .option-item:has(input:checked) span {
+    color: var(--white);
+  }
+
+  /* Sub-form for app details */
+  .app-detail-block {
+    margin-top: 20px;
+  }
+
+  .app-detail-title {
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .app-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media (max-width: 600px) {
+    .app-detail-grid { grid-template-columns: 1fr; }
+  }
+
+  .app-detail-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .app-detail-card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cyan);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .app-detail-card-title::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--cyan);
+    border-radius: 50%;
+  }
+
+  .mini-field {
+    margin-bottom: 10px;
+  }
+
+  .mini-field:last-child { margin-bottom: 0; }
+
+  .mini-label {
+    font-size: 11px;
+    color: var(--white-muted);
+    margin-bottom: 5px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .mini-option-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .mini-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--white-dim);
+    cursor: pointer;
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+
+  .mini-option:hover { background: var(--surface-hover); }
+  .mini-option input { width: 13px; height: 13px; accent-color: var(--cyan); }
+  .mini-option:has(input:checked) {
+    background: rgba(0,212,255,0.08);
+    border-color: rgba(0,212,255,0.4);
+    color: var(--white);
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 24px 0;
+  }
+
+  /* Declaration */
+  .declaration-box {
+    background: rgba(0,229,160,0.06);
+    border: 1px solid rgba(0,229,160,0.2);
+    border-radius: 10px;
+    padding: 18px 20px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .declaration-box input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--green);
+    margin-top: 2px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .declaration-text {
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(0,229,160,0.85);
+    font-style: italic;
+  }
+
+  /* Nav buttons */
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 28px;
+    gap: 12px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--white-dim);
+  }
+
+  .btn-ghost:hover {
+    background: var(--surface-hover);
+    color: var(--white);
+    border-color: rgba(0,212,255,0.3);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--blue), var(--blue-soft));
+    color: white;
+    box-shadow: 0 4px 16px rgba(30,92,255,0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(30,92,255,0.4);
+  }
+
+  .btn-success {
+    background: linear-gradient(135deg, #00b87a, var(--green));
+    color: var(--navy);
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0,229,160,0.25);
+  }
+
+  .btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0,229,160,0.35);
+  }
+
+  .btn-success:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Step indicator */
+  .step-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .step-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.3s;
+  }
+
+  .step-dot.done {
+    background: var(--green);
+    box-shadow: 0 0 8px rgba(0,229,160,0.4);
+  }
+
+  .step-dot.active {
+    background: var(--cyan);
+    box-shadow: 0 0 8px rgba(0,212,255,0.4);
+    width: 20px;
+    border-radius: 4px;
+  }
+
+  /* Success screen */
+  .success-screen {
+    display: none;
+    text-align: center;
+    padding: 60px 40px;
+    background: var(--surface);
+    border: 1px solid rgba(0,229,160,0.2);
+    border-radius: 16px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .success-screen.show { display: block; }
+
+  .success-icon {
+    width: 72px; height: 72px;
+    background: rgba(0,229,160,0.1);
+    border: 2px solid rgba(0,229,160,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 32px;
+  }
+
+  .success-screen h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--green);
+    margin-bottom: 12px;
+  }
+
+  .success-screen p {
+    font-size: 14px;
+    color: var(--white-dim);
+    line-height: 1.7;
+    max-width: 440px;
+    margin: 0 auto 28px;
+  }
+
+  .ref-code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    background: rgba(0,212,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 20px;
+    color: var(--cyan);
+    letter-spacing: 0.08em;
+    display: inline-block;
+    margin-bottom: 28px;
+  }
+
+  /* Validation */
+  .field-error {
+    font-size: 11px;
+    color: var(--red);
+    margin-top: 5px;
+    font-family: 'IBM Plex Mono', monospace;
+    display: none;
+  }
+
+  .field-error.show { display: block; }
+
+  input.invalid, textarea.invalid {
+    border-color: rgba(255,71,87,0.5) !important;
+  }
+
+  /* Animations */
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Info note */
+  .info-note {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: rgba(255,181,32,0.06);
+    border: 1px solid rgba(255,181,32,0.2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: rgba(255,181,32,0.85);
+    line-height: 1.5;
+  }
+
+  .info-note svg { flex-shrink: 0; margin-top: 1px; }
+
+  /* Two cols */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 560px) {
+    .two-col { grid-template-columns: 1fr; }
+    .section-header { padding: 16px 20px; }
+    .section-body { padding: 20px; }
+    .nav-buttons { flex-direction: column; }
+    .btn { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+<div class="glow-top"></div>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">
+      <span>Auditoría de Seguridad · Confidencial</span>
+    </div>
+    <h1>Sondeo de Validación de Accesos<br>a <span>Aplicativos</span></h1>
+    <p class="header-desc">
+      Este formulario tiene como objetivo validar y auditar los accesos que poseen los empleados
+      a aplicativos administrados por la empresa y por los clientes,
+      incluyendo validación de seguridad (MFA / 2FA).
+    </p>
+    <div class="header-meta">
+      <span class="meta-chip">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Datos confidenciales
+      </span>
+      <span class="meta-chip">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        ~10 min estimados
+      </span>
+      <span class="meta-chip">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Una respuesta por usuario
+      </span>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-bar-wrap">
+    <div class="progress-info">
+      <span class="progress-label" id="progressLabel">SECCIÓN 1 DE 5</span>
+      <span class="progress-pct" id="progressPct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- ======================== SECCIÓN 1 ======================== -->
+  <div class="section-card active" id="section1">
+    <div class="section-header">
+      <div class="section-number">01</div>
+      <div class="section-title-wrap">
+        <h2>Información del Empleado</h2>
+        <p>Datos de identificación y ubicación organizacional</p>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="two-col">
+        <div class="field">
+          <label class="field-label" for="nombreCompleto">Nombre completo <span class="required">*</span></label>
+          <input type="text" id="nombreCompleto" placeholder="Ej. María García López" required>
+          <div class="field-error" id="err-nombreCompleto">Este campo es obligatorio</div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="documento">Documento de identidad <span class="required">*</span></label>
+          <input type="text" id="documento" placeholder="Ej. 1234567890" required>
+          <div class="field-error" id="err-documento">Este campo es obligatorio</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="correo">Correo corporativo <span class="required">*</span></label>
+        <input type="email" id="correo" placeholder="nombre@empresa.com" required>
+        <div class="field-error" id="err-correo">Ingresa un correo válido</div>
+      </div>
+      <div class="two-col">
+        <div class="field">
+          <label class="field-label" for="cargo">Cargo <span class="required">*</span></label>
+          <input type="text" id="cargo" placeholder="Ej. Desarrollador Senior" required>
+          <div class="field-error" id="err-cargo">Este campo es obligatorio</div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="area">Área <span class="required">*</span></label>
+          <input type="text" id="area" placeholder="Ej. Tecnología" required>
+          <div class="field-error" id="err-area">Este campo es obligatorio</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="lider">Líder inmediato <span class="required">*</span></label>
+        <input type="text" id="lider" placeholder="Nombre completo del líder" required>
+        <div class="field-error" id="err-lider">Este campo es obligatorio</div>
+      </div>
+      <div class="field">
+        <label class="field-label">¿Actualmente se encuentra asignado a proyectos? <span class="required">*</span></label>
+        <div class="option-group inline">
+          <label class="option-item">
+            <input type="radio" name="asignadoProyectos" value="Si">
+            <span>Sí</span>
+          </label>
+          <label class="option-item">
+            <input type="radio" name="asignadoProyectos" value="No">
+            <span>No</span>
+          </label>
+        </div>
+        <div class="field-error" id="err-asignadoProyectos">Selecciona una opción</div>
+      </div>
+    </div>
+    <div class="nav-buttons" style="padding: 0 28px 28px;">
+      <div class="step-dots" id="dots1"></div>
+      <button class="btn btn-primary" onclick="goNext(1)">
+        Continuar
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================== SECCIÓN 2 ======================== -->
+  <div class="section-card" id="section2">
+    <div class="section-header">
+      <div class="section-number">02</div>
+      <div class="section-title-wrap">
+        <h2>Accesos a Aplicativos Corporativos</h2>
+        <p>Aplicativos administrados por la empresa</p>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label class="field-label">¿A cuáles aplicativos corporativos tiene acceso actualmente? <span class="required">*</span>
+          <span class="badge">Selección múltiple</span>
+        </label>
+        <div class="option-group">
+          <label class="option-item"><input type="checkbox" name="appCorp" value="VTEX"><span>VTEX</span></label>
+          <label class="option-item"><input type="checkbox" name="appCorp" value="AWS"><span>AWS (Amazon Web Services)</span></label>
+          <label class="option-item"><input type="checkbox" name="appCorp" value="Azure"><span>Microsoft Azure</span></label>
+          <label class="option-item"><input type="checkbox" name="appCorp" value="Microsoft Teams"><span>Microsoft Teams</span></label>
+          <label class="option-item"><input type="checkbox" name="appCorp" value="Google Workspace"><span>Google Workspace</span></label>
+          <label class="option-item"><input type="checkbox" name="appCorp" value="Figma"><span>Figma</span></label>
+          <label class="option-item"><input type="checkbox" name="appCorp" value="Adobe Experience Cloud"><span>Adobe Experience Cloud (Adobe DX)</span></label>
+        </div>
+        <div class="field-error" id="err-appCorp">Selecciona al menos un aplicativo</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="info-note">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Para cada aplicativo seleccionado, completa la información de acceso a continuación. Si tienes acceso a un aplicativo que no está en la lista, usa el botón <strong style="color:var(--cyan)">+ Agregar otro aplicativo</strong>.
+      </div>
+
+      <div class="app-detail-block" id="corpAppDetails">
+        <!-- Generated by JS -->
+      </div>
+    </div>
+    <div class="nav-buttons" style="padding: 0 28px 28px;">
+      <button class="btn btn-ghost" onclick="goPrev(2)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Anterior
+      </button>
+      <div class="step-dots" id="dots2"></div>
+      <button class="btn btn-primary" onclick="goNext(2)">
+        Continuar
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================== SECCIÓN 3 ======================== -->
+  <div class="section-card" id="section3">
+    <div class="section-header">
+      <div class="section-number">03</div>
+      <div class="section-title-wrap">
+        <h2>Accesos a Aplicativos del Cliente</h2>
+        <p>Aplicativos administrados por los clientes</p>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label class="field-label">¿A cuáles aplicativos del cliente tiene acceso? <span class="required">*</span>
+          <span class="badge">Selección múltiple</span>
+        </label>
+        <div class="option-group">
+          <label class="option-item"><input type="checkbox" name="appClient" value="VPN del cliente"><span>VPN del cliente</span></label>
+          <label class="option-item"><input type="checkbox" name="appClient" value="VTEX"><span>VTEX</span></label>
+          <label class="option-item"><input type="checkbox" name="appClient" value="AWS"><span>AWS (Amazon Web Services)</span></label>
+          <label class="option-item"><input type="checkbox" name="appClient" value="Azure"><span>Microsoft Azure</span></label>
+          <label class="option-item"><input type="checkbox" name="appClient" value="Microsoft Teams"><span>Microsoft Teams</span></label>
+          <label class="option-item"><input type="checkbox" name="appClient" value="Google Workspace"><span>Google Workspace</span></label>
+          <label class="option-item"><input type="checkbox" name="appClient" value="Microsoft 365"><span>Microsoft 365</span></label>
+        </div>
+        <div class="field-error" id="err-appClient">Selecciona al menos un aplicativo</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="info-note">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Para cada aplicativo del cliente seleccionado, completa la información a continuación. Si tienes acceso a un aplicativo que no está en la lista, usa el botón <strong style="color:var(--cyan)">+ Agregar otro aplicativo</strong>.
+      </div>
+
+      <div class="app-detail-block" id="clientAppDetails">
+        <!-- Generated by JS -->
+      </div>
+    </div>
+    <div class="nav-buttons" style="padding: 0 28px 28px;">
+      <button class="btn btn-ghost" onclick="goPrev(3)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Anterior
+      </button>
+      <div class="step-dots" id="dots3"></div>
+      <button class="btn btn-primary" onclick="goNext(3)">
+        Continuar
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================== SECCIÓN 4 ======================== -->
+  <div class="section-card" id="section4">
+    <div class="section-header">
+      <div class="section-number">04</div>
+      <div class="section-title-wrap">
+        <h2>Seguridad y Buenas Prácticas</h2>
+        <p>Evaluación de hábitos de seguridad</p>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label class="field-label">¿Utiliza la misma contraseña en más de un sistema? <span class="required">*</span></label>
+        <div class="option-group inline">
+          <label class="option-item"><input type="radio" name="mismaContrasena" value="Si"><span>Sí</span></label>
+          <label class="option-item"><input type="radio" name="mismaContrasena" value="No"><span>No</span></label>
+        </div>
+        <div class="field-error" id="err-mismaContrasena">Selecciona una opción</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">¿Ha compartido credenciales con otra persona? <span class="required">*</span></label>
+        <div class="option-group inline">
+          <label class="option-item"><input type="radio" name="compartidoCredenciales" value="Si"><span>Sí</span></label>
+          <label class="option-item"><input type="radio" name="compartidoCredenciales" value="No"><span>No</span></label>
+        </div>
+        <div class="field-error" id="err-compartidoCredenciales">Selecciona una opción</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">¿Considera que tiene accesos que ya no debería tener? <span class="required">*</span></label>
+        <div class="option-group inline">
+          <label class="option-item"><input type="radio" name="accesosSobrantes" value="Si" onchange="toggleSobrantes(true)"><span>Sí</span></label>
+          <label class="option-item"><input type="radio" name="accesosSobrantes" value="No" onchange="toggleSobrantes(false)"><span>No</span></label>
+        </div>
+        <div class="field-error" id="err-accesosSobrantes">Selecciona una opción</div>
+      </div>
+
+      <div class="field" id="sobrantes-field" style="display:none;">
+        <label class="field-label" for="cualesAccesos">Si respondió Sí, ¿cuáles accesos? <span class="required">*</span></label>
+        <textarea id="cualesAccesos" placeholder="Describe los accesos que ya no deberías tener (aplicativo, cliente, rol...)"></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field-label">¿Tiene aplicativos corporativos instalados en dispositivos personales? <span class="required">*</span></label>
+        <div class="option-group inline">
+          <label class="option-item"><input type="radio" name="appsPersonales" value="Si"><span>Sí</span></label>
+          <label class="option-item"><input type="radio" name="appsPersonales" value="No"><span>No</span></label>
+        </div>
+        <div class="field-error" id="err-appsPersonales">Selecciona una opción</div>
+      </div>
+    </div>
+    <div class="nav-buttons" style="padding: 0 28px 28px;">
+      <button class="btn btn-ghost" onclick="goPrev(4)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Anterior
+      </button>
+      <div class="step-dots" id="dots4"></div>
+      <button class="btn btn-primary" onclick="goNext(4)">
+        Continuar
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================== SECCIÓN 5 ======================== -->
+  <div class="section-card" id="section5">
+    <div class="section-header">
+      <div class="section-number">05</div>
+      <div class="section-title-wrap">
+        <h2>Confirmación y Firma</h2>
+        <p>Declaración de veracidad</p>
+      </div>
+    </div>
+    <div class="section-body">
+
+      <div class="field">
+        <label class="field-label">Resumen de tu respuesta</label>
+        <div id="summaryBox" style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:12px;color:var(--white-dim);font-family:'IBM Plex Mono',monospace;line-height:1.8;"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label class="field-label">Declaración obligatoria <span class="required">*</span></label>
+        <div class="declaration-box">
+          <input type="checkbox" id="declaracion" onchange="checkDeclaration()">
+          <p class="declaration-text">
+            "Confirmo que la información suministrada es veraz y corresponde a los accesos que actualmente poseo. Entiendo que esta declaración hace parte de un proceso de auditoría de seguridad interna."
+          </p>
+        </div>
+        <div class="field-error" id="err-declaracion">Debes aceptar la declaración para continuar</div>
+      </div>
+
+    </div>
+    <div class="nav-buttons" style="padding: 0 28px 28px;">
+      <button class="btn btn-ghost" onclick="goPrev(5)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Anterior
+      </button>
+      <div class="step-dots" id="dots5"></div>
+      <button class="btn btn-success" id="submitBtn" onclick="submitForm()" disabled>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Enviar formulario
+      </button>
+    </div>
+  </div>
+
+  <!-- Success screen -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">✓</div>
+    <h2>¡Formulario enviado!</h2>
+    <p>Tu sondeo de auditoría de seguridad ha sido registrado correctamente. El equipo de seguridad procesará tu información en los próximos días hábiles.</p>
+    <div class="ref-code" id="refCode">REF: ...</div>
+    <button class="btn btn-ghost" onclick="downloadResponses()" style="margin:0 auto;display:inline-flex;">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Descargar mis respuestas (JSON)
+    </button>
+  </div>
+
+</div>
+
+<script>
+const TOTAL_SECTIONS = 5;
+let currentSection = 1;
+let formData = {};
+
+// ---- Init dots for all sections ----
+function renderDots() {
+  for (let s = 1; s <= TOTAL_SECTIONS; s++) {
+    const el = document.getElementById('dots' + s);
+    if (!el) continue;
+    el.innerHTML = '';
+    for (let i = 1; i <= TOTAL_SECTIONS; i++) {
+      const d = document.createElement('div');
+      d.className = 'step-dot' + (i === s ? ' active' : (i < s ? ' done' : ''));
+      el.appendChild(d);
+    }
+  }
+}
+
+function updateProgress(section) {
+  const pct = Math.round(((section - 1) / TOTAL_SECTIONS) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressLabel').textContent = 'SECCIÓN ' + section + ' DE ' + TOTAL_SECTIONS;
+}
+
+function showSection(n) {
+  document.querySelectorAll('.section-card').forEach(c => c.classList.remove('active'));
+  const el = document.getElementById('section' + n);
+  if (el) { el.classList.add('active'); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  currentSection = n;
+  updateProgress(n);
+  if (n === 5) buildSummary();
+}
+
+// ---- Multi-client app detail system ----
+// Storage: appClientRows[prefix_appSafe] = [ {rowIndex, fields...} ]
+
+function bindCheckboxGroup(name, detailContainerId, isClient) {
+  const checkboxes = document.querySelectorAll(`input[name="${name}"]`);
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => buildAppDetailCards(name, detailContainerId, isClient));
+  });
+}
+
+function inputStyle() {
+  return 'width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--white);outline:none;font-family:\'IBM Plex Sans\',sans-serif;';
+}
+
+function buildClientRow(prefix, safe, rowIdx, isClient) {
+  const uid = `${prefix}_${safe}_r${rowIdx}`;
+  const canDelete = rowIdx > 0;
+
+  const deleteBtn = canDelete
+    ? `<button type="button" onclick="removeClientRow('${prefix}','${safe}',${rowIdx},'${isClient}')"
+         style="background:rgba(255,71,87,0.12);border:1px solid rgba(255,71,87,0.3);color:#ff4757;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;float:right;">
+         ✕ Eliminar
+       </button>` : '';
+
+  // For corp: single block (no multi-row), label is "ACCESO"
+  // For client: multi-row with "CLIENTE N" label
+  const rowLabel = isClient ? (rowIdx === 0 ? 'CLIENTE 1' : `CLIENTE ${rowIdx + 1}`) : 'ACCESO';
+
+  if (isClient) {
+    return `
+      <div class="client-row" id="row_${uid}" style="background:rgba(255,255,255,0.02);border:1px solid rgba(0,212,255,0.1);border-radius:8px;padding:12px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <span style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--cyan);letter-spacing:0.06em;">${rowLabel}</span>
+          ${deleteBtn}
+        </div>
+        <div class="mini-field">
+          <div class="mini-label">NOMBRE DEL CLIENTE *</div>
+          <input type="text" style="${inputStyle()}" placeholder="Nombre del cliente" id="${uid}_nombre">
+        </div>
+        <div class="mini-field">
+          <div class="mini-label">PROYECTO *</div>
+          <input type="text" style="${inputStyle()}" placeholder="Proyecto" id="${uid}_proyecto">
+        </div>
+        <div class="mini-field">
+          <div class="mini-label">ROL / TIPO DE ACCESO</div>
+          <input type="text" style="${inputStyle()}" placeholder="Ej. Admin, Read-only" id="${uid}_rol">
+        </div>
+        <div class="mini-field">
+          <div class="mini-label">TIPO DE CUENTA</div>
+          <div class="mini-option-group">
+            <label class="mini-option"><input type="radio" name="${uid}_cuenta" value="Individual"> Individual</label>
+            <label class="mini-option"><input type="radio" name="${uid}_cuenta" value="Compartida"> Compartida</label>
+          </div>
+        </div>
+        <div class="mini-field">
+          <div class="mini-label">¿MFA / 2FA HABILITADO?</div>
+          <div class="mini-option-group">
+            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="Si"> Sí</label>
+            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="No"> No</label>
+            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="No sabe"> No sé</label>
+          </div>
+        </div>
+      </div>`;
+  } else {
+    // Corp: cliente siempre es Experimentality (fijo, no se muestra)
+    return `
+      <div class="client-row" id="row_${uid}" style="background:rgba(255,255,255,0.02);border:1px solid rgba(0,212,255,0.1);border-radius:8px;padding:12px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <span style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--cyan);letter-spacing:0.06em;">${rowLabel}</span>
+          <span style="font-size:10px;font-family:'IBM Plex Mono',monospace;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);color:var(--cyan);border-radius:4px;padding:2px 8px;">
+            Cliente: Experimentality
+          </span>
+        </div>
+        <div class="mini-field">
+          <div class="mini-label">PROYECTO ASOCIADO</div>
+          <input type="text" style="${inputStyle()}" placeholder="Nombre del proyecto" id="${uid}_proyecto">
+        </div>
+        <div class="mini-field">
+          <div class="mini-label">ROL / TIPO DE ACCESO</div>
+          <input type="text" style="${inputStyle()}" placeholder="Ej. Admin, Developer" id="${uid}_rol">
+        </div>
+        <div class="mini-field">
+          <div class="mini-label">¿MFA / 2FA HABILITADO?</div>
+          <div class="mini-option-group">
+            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="Si"> Sí</label>
+            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="No"> No</label>
+            <label class="mini-option"><input type="radio" name="${uid}_mfa" value="No sabe"> No sé</label>
+          </div>
+        </div>
+      </div>`;
+  }
+}
+
+// Track row counts per app: { "corp_VTEX": 1, "client_AWS": 2, ... }
+const rowCounts = {};
+
+function addClientRow(prefix, safe, isClient) {
+  const key = `${prefix}_${safe}`;
+  const count = rowCounts[key] || 1;
+  rowCounts[key] = count + 1;
+  const rowsContainer = document.getElementById(`rows_${key}`);
+  if (!rowsContainer) return;
+  const div = document.createElement('div');
+  div.innerHTML = buildClientRow(prefix, safe, count, isClient);
+  rowsContainer.appendChild(div.firstElementChild);
+  // Re-label all rows
+  relabelRows(key);
+}
+
+function removeClientRow(prefix, safe, rowIdx, isClient) {
+  const key = `${prefix}_${safe}`;
+  const uid = `${prefix}_${safe}_r${rowIdx}`;
+  const el = document.getElementById(`row_${uid}`);
+  if (el) el.remove();
+  relabelRows(key);
+}
+
+function relabelRows(key) {
+  const container = document.getElementById(`rows_${key}`);
+  if (!container) return;
+  const rows = container.querySelectorAll('.client-row');
+  rows.forEach((row, idx) => {
+    const label = row.querySelector('span');
+    if (label) label.textContent = idx === 0 ? 'CLIENTE 1' : `CLIENTE ${idx + 1}`;
+    // Show/hide delete button
+    const btn = row.querySelector('button');
+    if (btn) btn.style.display = idx === 0 ? 'none' : 'inline-block';
+  });
+}
+
+function buildAppDetailCards(name, containerId, isClient) {
+  const prefix = isClient ? 'client' : 'corp';
+  const container = document.getElementById(containerId);
+
+  // Get checked values, but exclude "Otro" — those are handled as custom apps
+  let checked = [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(c => c.value)
+    .filter(v => v !== 'Otro');
+
+  if (checked.length === 0 && Object.keys(rowCounts).filter(k => k.startsWith(prefix + '_custom')).length === 0) {
+    container.innerHTML = '';
+    renderAddOtroButton(container, prefix, isClient);
+    return;
+  }
+
+  let html = `<div class="app-detail-title">DETALLE POR APLICATIVO</div>`;
+
+  checked.forEach(app => {
+    html += renderAppCard(prefix, app, isClient);
+  });
+
+  container.innerHTML = html;
+
+  // Re-render custom cards (preserves added custom apps across checkbox changes)
+  const customKeys = Object.keys(rowCounts).filter(k => k.startsWith(`${prefix}_custom`));
+  customKeys.forEach(key => {
+    const safe = key.replace(`${prefix}_`, '');
+    const existingCard = document.getElementById(`appcard_${key}`);
+    if (!existingCard) {
+      container.insertAdjacentHTML('beforeend', renderAppCard(prefix, safe, isClient, true));
+    }
+  });
+
+  renderAddOtroButton(container, prefix, isClient);
+}
+
+function renderAppCard(prefix, app, isClient, isCustom = false) {
+  const safe = app.replace(/\s+/g, '_');
+  const key = `${prefix}_${safe}`;
+  if (!rowCounts[key]) rowCounts[key] = 1;
+  const count = rowCounts[key];
+
+  let rowsHtml = '';
+  for (let i = 0; i < count; i++) {
+    rowsHtml += buildClientRow(prefix, safe, i, isClient);
+  }
+
+  const deleteCardBtn = isCustom
+    ? `<button type="button" onclick="removeCustomApp('${prefix}','${safe}','${isCustom ? 'appCorp' : 'appClient'}')"
+         style="background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.25);color:#ff4757;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;">
+         ✕ Quitar app
+       </button>` : '';
+
+  const displayName = isCustom
+    ? `<input type="text" id="customname_${key}" placeholder="Nombre del aplicativo"
+         style="background:transparent;border:none;border-bottom:1px solid rgba(0,212,255,0.4);color:var(--cyan);font-size:13px;font-weight:600;font-family:'IBM Plex Sans',sans-serif;outline:none;width:180px;padding:2px 4px;">`
+    : app;
+
+  const addClientBtnHtml = isClient ? `
+    <button type="button"
+      onclick="addClientRow('${prefix}','${safe}',${isClient})"
+      style="margin-top:8px;width:100%;background:rgba(0,212,255,0.07);border:1px dashed rgba(0,212,255,0.3);color:var(--cyan);border-radius:7px;padding:8px;font-size:12px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:background 0.15s;"
+      onmouseover="this.style.background='rgba(0,212,255,0.14)'"
+      onmouseout="this.style.background='rgba(0,212,255,0.07)'">
+      + Agregar otro cliente
+    </button>` : '';
+
+  return `
+    <div class="app-detail-card" id="appcard_${key}" style="margin-bottom:16px;">
+      <div class="app-detail-card-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>${displayName}</span>
+        ${deleteCardBtn}
+      </div>
+      <div id="rows_${key}">${rowsHtml}</div>
+      ${addClientBtnHtml}
+    </div>`;
+}
+
+function renderAddOtroButton(container, prefix, isClient) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.id = `addOtroBtn_${prefix}`;
+  btn.innerHTML = `
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Agregar otro aplicativo`;
+  btn.style.cssText = 'margin-top:12px;width:100%;background:rgba(0,229,160,0.06);border:1px dashed rgba(0,229,160,0.3);color:#00e5a0;border-radius:7px;padding:10px;font-size:13px;cursor:pointer;font-family:\'IBM Plex Sans\',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.15s;';
+  btn.onmouseover = () => btn.style.background = 'rgba(0,229,160,0.12)';
+  btn.onmouseout = () => btn.style.background = 'rgba(0,229,160,0.06)';
+  btn.onclick = () => addCustomApp(prefix, isClient);
+  // Remove existing before appending
+  const existing = document.getElementById(`addOtroBtn_${prefix}`);
+  if (existing) existing.remove();
+  container.appendChild(btn);
+}
+
+let customAppCounter = 0;
+function addCustomApp(prefix, isClient) {
+  customAppCounter++;
+  const safe = `custom_app_${customAppCounter}`;
+  const key = `${prefix}_${safe}`;
+  rowCounts[key] = 1;
+  const container = document.getElementById(prefix === 'corp' ? 'corpAppDetails' : 'clientAppDetails');
+  // Insert before the add button
+  const addBtn = document.getElementById(`addOtroBtn_${prefix}`);
+  const html = renderAppCard(prefix, safe, isClient, true);
+  addBtn.insertAdjacentHTML('beforebegin', html);
+}
+
+function removeCustomApp(prefix, safe, checkboxName) {
+  const key = `${prefix}_${safe}`;
+  const card = document.getElementById(`appcard_${key}`);
+  if (card) card.remove();
+  delete rowCounts[key];
+}
+
+function toggleSobrantes(show) {
+  document.getElementById('sobrantes-field').style.display = show ? 'block' : 'none';
+}
+
+function checkDeclaration() {
+  const checked = document.getElementById('declaracion').checked;
+  document.getElementById('submitBtn').disabled = !checked;
+}
+
+// ---- Validation ----
+function validateSection(n) {
+  let valid = true;
+
+  const requireText = (id) => {
+    const el = document.getElementById(id);
+    const err = document.getElementById('err-' + id);
+    if (!el || !el.value.trim()) {
+      if (el) el.classList.add('invalid');
+      if (err) err.classList.add('show');
+      valid = false;
+    } else {
+      if (el) el.classList.remove('invalid');
+      if (err) err.classList.remove('show');
+    }
+  };
+
+  const requireEmail = (id) => {
+    const el = document.getElementById(id);
+    const err = document.getElementById('err-' + id);
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!el || !emailRe.test(el.value.trim())) {
+      if (el) el.classList.add('invalid');
+      if (err) err.classList.add('show');
+      valid = false;
+    } else {
+      if (el) el.classList.remove('invalid');
+      if (err) err.classList.remove('show');
+    }
+  };
+
+  const requireRadio = (name) => {
+    const sel = document.querySelector(`input[name="${name}"]:checked`);
+    const err = document.getElementById('err-' + name);
+    if (!sel) { if (err) err.classList.add('show'); valid = false; }
+    else { if (err) err.classList.remove('show'); }
+  };
+
+  const requireCheckbox = (name) => {
+    const sel = document.querySelectorAll(`input[name="${name}"]:checked`);
+    const err = document.getElementById('err-' + name);
+    if (sel.length === 0) { if (err) err.classList.add('show'); valid = false; }
+    else { if (err) err.classList.remove('show'); }
+  };
+
+  if (n === 1) {
+    requireText('nombreCompleto');
+    requireText('documento');
+    requireEmail('correo');
+    requireText('cargo');
+    requireText('area');
+    requireText('lider');
+    requireRadio('asignadoProyectos');
+  }
+  if (n === 2) requireCheckbox('appCorp');
+  if (n === 3) requireCheckbox('appClient');
+  if (n === 4) {
+    requireRadio('mismaContrasena');
+    requireRadio('compartidoCredenciales');
+    requireRadio('accesosSobrantes');
+    requireRadio('appsPersonales');
+    const accesosSobrantes = document.querySelector('input[name="accesosSobrantes"]:checked');
+    if (accesosSobrantes && accesosSobrantes.value === 'Si') {
+      requireText('cualesAccesos');
+    }
+  }
+
+  return valid;
+}
+
+function goNext(n) {
+  if (!validateSection(n)) { return; }
+  if (n < TOTAL_SECTIONS) showSection(n + 1);
+}
+
+function goPrev(n) {
+  if (n > 1) showSection(n - 1);
+}
+
+// ---- Summary ----
+function buildSummary() {
+  const box = document.getElementById('summaryBox');
+  const g = (id) => { const el = document.getElementById(id); return el ? el.value || '—' : '—'; };
+  const r = (name) => { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : '—'; };
+  const cbs = (name) => [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(c => c.value).join(', ') || '—';
+
+  box.innerHTML = `
+    <b style="color:var(--cyan)">EMPLEADO</b><br>
+    Nombre: ${g('nombreCompleto')} · Doc: ${g('documento')}<br>
+    Correo: ${g('correo')} · Cargo: ${g('cargo')}<br>
+    Área: ${g('area')} · Líder: ${g('lider')}<br>
+    En proyectos: ${r('asignadoProyectos')}<br><br>
+    <b style="color:var(--cyan)">APPS CORPORATIVOS</b><br>
+    ${cbs('appCorp')}<br><br>
+    <b style="color:var(--cyan)">APPS CLIENTES</b><br>
+    ${cbs('appClient')}<br><br>
+    <b style="color:var(--cyan)">SEGURIDAD</b><br>
+    Misma contraseña: ${r('mismaContrasena')} · Compartió credenciales: ${r('compartidoCredenciales')}<br>
+    Accesos sobrantes: ${r('accesosSobrantes')} · Apps en dispositivo personal: ${r('appsPersonales')}
+  `;
+}
+
+// ---- Submit ----
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8cqjAEDAJgtaKd7Iq00nNBJVgUVn4p-JY5A2XqJcYMnPXwOtdgtSOln7rauRXRz4Wjw/exec';
+
+function gatherAppDetails(name, isClient) {
+  const prefix = isClient ? 'client' : 'corp';
+
+  // Standard checked apps (excluding "Otro" checkbox)
+  const checked = [...document.querySelectorAll(`input[name="${name}"]:checked`)]
+    .map(c => c.value).filter(v => v !== 'Otro');
+
+  // Custom apps added via "+ Agregar otro aplicativo"
+  const customKeys = Object.keys(rowCounts).filter(k => k.startsWith(`${prefix}_custom_app_`));
+  const customApps = customKeys.map(key => {
+    const safe = key.replace(`${prefix}_`, '');
+    const nameEl = document.getElementById(`customname_${key}`);
+    return { safe, displayName: nameEl ? (nameEl.value.trim() || 'Sin nombre') : 'Sin nombre' };
+  });
+
+  const results = [];
+
+  const collectRows = (safe, appDisplayName) => {
+    const key = `${prefix}_${safe}`;
+    const count = rowCounts[key] || 1;
+    for (let i = 0; i < count; i++) {
+      const uid = `${prefix}_${safe}_r${i}`;
+      const rowEl = document.getElementById(`row_${uid}`);
+      if (!rowEl) continue;
+      const gv = (suffix) => { const el = document.getElementById(`${uid}_${suffix}`); return el ? el.value.trim() : ''; };
+      const rv = (suffix) => { const el = rowEl.querySelector(`input[name="${uid}_${suffix}"]:checked`); return el ? el.value : ''; };
+      if (isClient) {
+        results.push({
+          nombre: appDisplayName,
+          nombreCliente: gv('nombre'),
+          proyecto: gv('proyecto'),
+          rol: gv('rol'),
+          tipoCuenta: rv('cuenta'),
+          mfa: rv('mfa')
+        });
+      } else {
+        results.push({
+          nombre: appDisplayName,
+          clienteAsociado: 'Experimentality',
+          proyectoAsociado: gv('proyecto'),
+          rol: gv('rol'),
+          mfa: rv('mfa')
+        });
+      }
+    }
+  };
+
+  checked.forEach(app => collectRows(app.replace(/\s+/g, '_'), app));
+  customApps.forEach(({ safe, displayName }) => collectRows(safe, displayName));
+
+  return results;
+}
+
+async function submitForm() {
+  const decl = document.getElementById('declaracion');
+  if (!decl.checked) {
+    document.getElementById('err-declaracion').classList.add('show');
+    return;
+  }
+
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Enviando...`;
+
+  const g = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const r = (name) => { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; };
+  const cbs = (name) => [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(c => c.value);
+
+  const ref = 'AUD-' + Date.now().toString(36).toUpperCase();
+
+  formData = {
+    timestamp: new Date().toISOString(),
+    referencia: ref,
+    seccion1: {
+      nombreCompleto: g('nombreCompleto'),
+      documento: g('documento'),
+      correo: g('correo'),
+      cargo: g('cargo'),
+      area: g('area'),
+      lider: g('lider'),
+      asignadoProyectos: r('asignadoProyectos')
+    },
+    seccion2_appsCorporativos: cbs('appCorp'),
+    seccion2_detalles: gatherAppDetails('appCorp', false),
+    seccion3_appsClientes: cbs('appClient'),
+    seccion3_detalles: gatherAppDetails('appClient', true),
+    seccion4_seguridad: {
+      mismaContrasena: r('mismaContrasena'),
+      compartidoCredenciales: r('compartidoCredenciales'),
+      accesosSobrantes: r('accesosSobrantes'),
+      cualesAccesos: g('cualesAccesos'),
+      appsPersonales: r('appsPersonales')
+    },
+    declaracionAceptada: true
+  };
+
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+    // no-cors doesn't return readable response, assume success if no exception
+    showSuccess(ref);
+  } catch (err) {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Enviar formulario`;
+    alert('❌ Error al enviar. Verifica tu conexión e intenta nuevamente.\n\n' + err.message);
+  }
+}
+
+function showSuccess(ref) {
+  document.getElementById('refCode').textContent = 'REF: ' + ref;
+  document.querySelectorAll('.section-card').forEach(c => c.style.display = 'none');
+  document.querySelector('.progress-bar-wrap').style.display = 'none';
+  document.getElementById('successScreen').classList.add('show');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function downloadResponses() {
+  const json = JSON.stringify(formData, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sondeo-auditoria-seguridad.json';
+  a.click();
+}
+
+// ---- Init ----
+renderDots();
+updateProgress(1);
+bindCheckboxGroup('appCorp', 'corpAppDetails', false);
+bindCheckboxGroup('appClient', 'clientAppDetails', true);
+</script>
+</body>
+</html>
