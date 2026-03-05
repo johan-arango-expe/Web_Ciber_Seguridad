@@ -430,7 +430,7 @@ function buildSummary() {
 }
 
 // ---- Submit ----
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8cqjAEDAJgtaKd7Iq00nNBJVgUVn4p-JY5A2XqJcYMnPXwOtdgtSOln7rauRXRz4Wjw/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/experimentality.co/s/AKfycbwz-TOXqvbel3p3hfali44nnOxfF1_kJic5vYwp_24y0RLCx_pKvsbTH3HyvRWT7Bor/exec';
 
 function gatherAppDetails(name, isClient) {
   const prefix = isClient ? 'client' : 'corp';
